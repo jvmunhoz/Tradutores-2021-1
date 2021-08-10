@@ -9,4 +9,4 @@ Para compilar, entre na pasta src onde se encontra o arquivo C_IPL_Lex-Analyzer.
 
 Uma vez com o arquivo a.out (ou qualquer outro nome do arquivo executável criado) na pasta src, digite o seguinte comando para rodar o analisador léxico em arquivos de teste:
 
-  $ ./a.out <caminho para o arquivo> 
+  $ ./a.out (caminho para o arquivo)
