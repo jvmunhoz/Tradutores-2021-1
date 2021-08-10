@@ -41,8 +41,6 @@ READWRITE   read|write|writeln
 
 COMMENT     (\/\/).*
 
-STRING      \"(\\.|[^"\\])*\"
-
 LISTOP      [:?!%]|(>>)|(<<)
 
 ID          [A-Za-z_][A-Za-z0-9_]*
