@@ -25,7 +25,9 @@ NIL         (NIL)
 
 MINUS       [-]
 
-ARITHOP     [-+*/]
+SUMOP       [-+]
+
+MULOP       [*/]
 
 EXCLAM      [!]
 
@@ -78,8 +80,12 @@ ID          [A-Za-z_][A-Za-z0-9_]*
     print_token("Símbolo de Menos");
 }
 
-{ARITHOP} {
-    print_token("Operação Aritmética");
+{SUMOP} {
+    print_token("Operação de Soma");
+}
+
+{MULOP} {
+    print_token("Operação de Multiplicação");
 }
 
 {EXCLAM} {
