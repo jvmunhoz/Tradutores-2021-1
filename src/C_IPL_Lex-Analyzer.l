@@ -39,6 +39,8 @@ KEYWORDS    if|else|for|return
 
 READWRITE   read|write|writeln
 
+STRING      \"(\\.|[^"\\])*\"
+
 COMMENT     (\/\/).*
 
 LISTOP      [:?!%]|(>>)|(<<)
@@ -104,6 +106,10 @@ ID          [A-Za-z_][A-Za-z0-9_]*
     print_token("I/O");
 }
 
+{STRING} {
+    print_token("String");
+}
+
 {LISTOP} {
     print_token("Operação de Listas");
 }
@@ -157,7 +163,7 @@ ID          [A-Za-z_][A-Za-z0-9_]*
 <<EOF>>         {unclosed_comment(); yyterminate();}
 }
 
-<STRING>{
+<STRING>{           
 "\""            BEGIN(INITIAL);
 [^\"\n]*        // eat string in chunks
 \n              unclosed_string();
