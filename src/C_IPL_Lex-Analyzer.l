@@ -25,13 +25,13 @@ NIL         (NIL)
 
 MINUS       [-]
 
-SUMOP       [-+]
+SUMOP       [+]
 
 MULOP       [*/]
 
 EXCLAM      [!]
 
-LOGOP       (&&)|(\|\|)|[!]
+LOGOP       (&&)|(\|\|)
 
 RELOP       [<]|(<=)|[>]|(>=)|(==)|(!=)
 
@@ -45,7 +45,7 @@ STRING      \"(\\.|[^"\\])*\"
 
 COMMENT     (\/\/).*
 
-LISTOP      [:?!%]|(>>)|(<<)
+LISTOP      [:?%]|(>>)|(<<)
 
 ID          [A-Za-z_][A-Za-z0-9_]*
 
@@ -141,12 +141,20 @@ ID          [A-Za-z_][A-Za-z0-9_]*
     print_token("Ponto e vírgula");
 }
 
-"("|")" {
-    print_token("Parêntesis");
+"(" {
+    print_token("Abre parêntesis");
 }
 
-"{"|"}" {
-    print_token("Chaves");
+")" {
+    print_token("Fecha parêntesis");
+}
+
+"{" {
+    print_token("Abre chaves");
+}
+
+"}" {
+    print_token("Fecha chaves");
 }
 
 "," {

@@ -1,41 +1,25 @@
-int list IL;
-float list FL;
-
-float succ(int i) {
-    return i+1;
-}
-
-
-int leq_10(float x) {
-    return x ^ 10; 
-}
+int i;
+int count;
+int age;
+int list lst;
 
 int main() {
+    lst = NIL;
 
-    writeln("Digite os número de elementos da lista: ");
-
-    int n;
-    float list FL10;
-    read(n);
-
-    IL  = NIL
-    FL = succ >> IL; 
-
-    FL10 = leq_10 <<  FL;
-    if ((FL10 != NIL) & (FL10 != NIL)) {
-        float list AUXL;
-        int n; n = 0;
-        for (AUXL=FL10; AUXL != NIL; AUXL = !AUXL) {
-            n = n + 1;
-            write(?AUXL); write(" ");
-        }
-        writeln(" ");
-        write("A nova lista tem "); write(n); writeln(" elementos.");
+    count = 10;
+    for (i = 0; i < count; i = i^2) {
+        writeln("Digite a idade de um aluno!");
+        read(age);
+        lst = age : lst;
     }
 
-    /* Comentário em bloco esquecido aberto
+    for (i = 0; i < count; i = i + 1) {
+        age = (age + (% lst));
+    }
 
-    else writeln("A nova lista não possui elementos.");
+    /* Comentário aberto que eu não fechei!
 
+    write("A soma da idade de todos os 10 alunos é ");write(age);
+    
     return 0;
 }
