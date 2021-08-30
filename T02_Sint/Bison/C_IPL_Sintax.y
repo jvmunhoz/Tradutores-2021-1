@@ -65,7 +65,7 @@ varDecl:
 ;
 
 typeList:
-    LIST_TYPE TYPE | TYPE
+    TYPE LIST_TYPE | TYPE
 ;
 
 funDecl:
