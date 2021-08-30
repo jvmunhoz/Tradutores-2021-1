@@ -19,7 +19,9 @@
 
 DIGIT       [0-9]
 
-TYPE        int|float|list
+LIST_TYPE   list
+
+TYPE        int|float
 
 NIL         (NIL)
 
@@ -37,15 +39,25 @@ RELOP       [<]|(<=)|[>]|(>=)|(==)|(!=)
 
 ASSIGN      [=]
 
-KEYWORDS    if|else|for|return
+IF          if
 
-READWRITE   read|write|writeln
+ELSE        else
+
+FOR         for
+
+RETURN      return
+
+READ        read
+
+WRITE       write|writeln
 
 STRING      \"(\\.|[^"\\])*\"
 
 COMMENT     (\/\/).*
 
-LISTOP      [:?%]|(>>)|(<<)
+UN_LISTOP   [?%]
+
+BIN_LISTOP  [:]|(>>)|(<<)
 
 ID          [A-Za-z_][A-Za-z0-9_]*
 
@@ -62,62 +74,102 @@ ID          [A-Za-z_][A-Za-z0-9_]*
 
 {TYPE} {
     print_token("Tipo");
+    return TYPE;
 }
 
 {DIGIT}+ {
     print_token("Constante Int");
+    return INT;
 }
 
 {DIGIT}+"."{DIGIT}+ {
     print_token("Constante Float");
+    return FLOAT;
 }
 
 {NIL} {
     print_token("Constante NIL");
+    return NIL;
 }
 
 {MINUS} {
     print_token("Símbolo de Menos");
+    return MINUS;
 }
 
 {SUMOP} {
     print_token("Operação de Soma");
+    return SUMOP;
 }
 
 {MULOP} {
     print_token("Operação de Multiplicação");
+    return MULOP;
 }
 
 {EXCLAM} {
     print_token("Símbolo de Exclamação");
+    return EXCLAM;
 }
 
 {LOGOP} {
     print_token("Operação Lógica");
+    return LOGOP;
 }
 
 {RELOP} {
     print_token("Operação Relacional");
+    return RELOP;
 }
 
 {ASSIGN} {
     print_token("Atribuição");
+    return ASSIGN;
 }
 
-{KEYWORDS} {
-    print_token("Keyword");
+{IF} {
+    print_token("Keyword if");
+    return KW_IF;
 }
 
-{READWRITE} {
-    print_token("I/O");
+{ELSE} {
+    print_token("Keyword else");
+    return KW_ELSE;
+}
+
+{FOR} {
+    print_token("Keyword for");
+    return KW_FOR;
+}
+
+{RETURN} {
+    print_token("Keyword return");
+    return KW_RETURN;
+}
+
+{READ} {
+    print_token("Operação de Leitura");
+    return READ;
+}
+
+{WRITE} {
+    print_token("Operação de Escrita");
+    return WRITE;
 }
 
 {STRING} {
     print_token("String");
+    return STRING;
 }
 
-{LISTOP} {
-    print_token("Operação de Listas");
+{UN_LISTOP} {
+    print_token("Operação Unária de Listas");
+    return UN_LISTOP;
+}
+
+{BIN_LISTOP} {
+    print_token("Operação Binária de Listas");
+    return BIN_LISTOP;
 }
 
 {COMMENT} {
@@ -126,6 +178,7 @@ ID          [A-Za-z_][A-Za-z0-9_]*
 
 {ID} {
     print_token("ID");
+    return ID;
 }
 
 "\"" {
@@ -139,26 +192,32 @@ ID          [A-Za-z_][A-Za-z0-9_]*
 
 ";" {
     print_token("Ponto e vírgula");
+    return ';';
 }
 
 "(" {
     print_token("Abre parêntesis");
+    return '(';
 }
 
 ")" {
     print_token("Fecha parêntesis");
+    return ')';
 }
 
 "{" {
     print_token("Abre chaves");
+    return '{';
 }
 
 "}" {
     print_token("Fecha chaves");
+    return '}';
 }
 
 "," {
     print_token("Vírgula");
+    return ',';
 }
 
 . {
@@ -206,21 +265,4 @@ void print_token(char token_name[]) {
     printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", yylineno, column);
     printf("%s: "BLUE"%s"REGULAR"\n", token_name, yytext);
     column += yyleng;
-}
-
-int main(int argc, char *argv[]){
-    yyin = fopen(argv[1], "r");
-    if(yyin){
-        yylex();
-        if (errors == 0) {
-            printf("\nNão foi encontrado nenhum erro. O arquivo está lexicamente correto!\n");
-        } else printf("\nOpa, foram encontrados "RED"%d"REGULAR" erros no arquivo. Ele não está lexicamente correto!\n", errors);
-    }
-    else {
-        printf("Argumento inválido ou inexistente. Tenha certeza que o caminho do arquivo passado como argumento está certo!\n");
-        exit(0);
-    }
-    fclose(yyin);
-    yylex_destroy();
-    return 0;
 }
