@@ -5,11 +5,14 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
-    #include "symbol_table.h"
+    #define BLUE "\033[1;34:40m"
+    #define RED "\033[1;31:40m"
+    #define GREEN "\033[1;32:40m"
+    #define REGULAR "\033[0m"
     extern int yylex();
     extern int yylex_destroy();
     extern int yyterminate();
-    extern void yyerror(const char* a);
+    extern void yyerror(const char* e);
     extern int yylineno;
     extern int column;
     extern int errors;
@@ -22,10 +25,10 @@
 %token FLOAT
 %token NIL
 %token MINUS
-%token SUMOP
-%token MULOP
+%left  SUMOP
+%left  MULOP
 %right EXCLAM
-%token LOGOP
+%left  LOGOP
 %token RELOP
 %token ASSIGN
 %token KW_IF
@@ -54,7 +57,6 @@ program:
 declList: 
     declList decl | decl
 ;
-
 
 decl:
     varDecl | funDecl
@@ -93,15 +95,11 @@ expStmt:
 ;
 
 compoundStmt:
-    '{' localDecls stmtList '}'
+    '{' localDecls '}'
 ;
 
 localDecls:
-    localDecls varDecl | {}
-;
-
-stmtList:
-    stmtList stmt | {}
+    localDecls varDecl | localDecls stmt | {}
 ;
 
 ifStmt:
@@ -182,7 +180,9 @@ constant:
 
 %%
 
-
+ extern void yyerror (char const* e) {
+   fprintf (stderr, "%s\n", e);
+ }
 
 int main(int argc, char *argv[]){
     yyin = fopen(argv[1], "r");

@@ -1,10 +1,11 @@
 %option noinput nounput
 %option noyywrap
 %x IN_COMMENT
-%x STRING
 %{
+    #include "../Bison/C_IPL_Syntax.tab.h"
     #include <stdio.h>
     #include <stdlib.h>
+    #include <string.h>
     #define BLUE "\033[1;34:40m"
     #define RED "\033[1;31:40m"
     #define GREEN "\033[1;32:40m"
@@ -51,7 +52,9 @@ READ        read
 
 WRITE       write|writeln
 
-STRING      \"(\\.|[^"\\])*\"
+STRING      \"[^\"\n]*\"
+
+MLSTRING    \"[^\"\n]*
 
 COMMENT     (\/\/).*
 
@@ -75,6 +78,11 @@ ID          [A-Za-z_][A-Za-z0-9_]*
 {TYPE} {
     print_token("Tipo");
     return TYPE;
+}
+
+{LIST_TYPE} {
+    print_token("Lista");
+    return LIST_TYPE;
 }
 
 {DIGIT}+ {
@@ -162,6 +170,10 @@ ID          [A-Za-z_][A-Za-z0-9_]*
     return STRING;
 }
 
+{MLSTRING} {
+    unclosed_string();
+}
+
 {UN_LISTOP} {
     print_token("Operação Unária de Listas");
     return UN_LISTOP;
@@ -179,10 +191,6 @@ ID          [A-Za-z_][A-Za-z0-9_]*
 {ID} {
     print_token("ID");
     return ID;
-}
-
-"\"" {
-    BEGIN(STRING);
 }
 
 "/*" {
@@ -236,13 +244,6 @@ ID          [A-Za-z_][A-Za-z0-9_]*
 <<EOF>>         {unclosed_comment(); yyterminate();}
 }
 
-<STRING>{           
-"\""            BEGIN(INITIAL);
-[^\"\n]*        // eat string in chunks
-\n              unclosed_string();
-<<EOF>>         {unclosed_string(); yyterminate();}
-}
-
 %%
 
 void unclosed_comment() {
@@ -258,7 +259,6 @@ void unclosed_string() {
     printf("Uma string iniciada nessa linha chegou até uma quebra de linha ou ao final do arquivo e não foi fechada!\n");
     errors++;
     yylineno++;
-    BEGIN(INITIAL);
 }
 
 void print_token(char token_name[]) {
