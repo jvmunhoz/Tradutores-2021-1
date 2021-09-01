@@ -10,7 +10,6 @@
     #define RED "\033[1;31:40m"
     #define GREEN "\033[1;32:40m"
     #define REGULAR "\033[0m"
-    extern Node* populate_node(char* identifier);
     extern int yylex();
     extern int yylex_destroy();
     extern int yyterminate();
