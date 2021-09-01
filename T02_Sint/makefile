@@ -5,7 +5,7 @@ bison:
 	bison -d -o Bison/C_IPL_Syntax.tab.c Bison/C_IPL_Syntax.y -Wcounterexamples
 
 compile:
-	gcc -o tradutor Bison/C_IPL_Syntax.tab.c Flex/lex.yy.c -g -Wall
+	gcc -o tradutor Bison/C_IPL_Syntax.tab.c Flex/lex.yy.c lib/abstract_tree.c -g -Wall
 
 run:
 	./tradutor tests/test.c
