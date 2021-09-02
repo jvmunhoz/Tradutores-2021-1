@@ -5,8 +5,11 @@ Para a matéria de Tradutores da Universidade de Brasília, o trabalho obrigató
 
 Para compilar, simplesmente entre na pasta raiz e digite:
 
-  $ make tradutor_lex
+  $ make all
 
 Uma vez com o arquivo tradutor já na pasta raiz, digite o seguinte comando para rodar os programas no arquivo de teste:
 
-  $ ./tradutor (caminho para o arquivo)
+  $ run_correct_1
+  $ run_correct_2
+  $ run_incorrect_1
+  $ run_incorrect_2
