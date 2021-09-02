@@ -3,7 +3,9 @@
 %x IN_COMMENT
 %{
     #include "../lib/abstract_tree.h"
+    #include "../lib/symbol_table.h"
     #include "../Bison/C_IPL_Syntax.tab.h"
+    #include "../lib/scope_stack.h"
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
@@ -18,13 +20,12 @@
     int column = 1;
     int errors = 0;
     int comment_line = 0;
+    int first_time = 0;
 %}
 
 DIGIT       [0-9]
 
-LIST_TYPE   list
-
-TYPE        int|float
+TYPE        int|float|"int list"|"float list"
 
 NIL         (NIL)
 
@@ -80,11 +81,6 @@ ID          [A-Za-z_][A-Za-z0-9_]*
 {TYPE} {
     process_token();
     return TYPE;
-}
-
-{LIST_TYPE} {
-    process_token();
-    return LIST_TYPE;
 }
 
 {DIGIT}+ {
@@ -217,11 +213,14 @@ ID          [A-Za-z_][A-Za-z0-9_]*
 
 "{" {
     process_token();
+    scope++;
+    push(&root, scope);
     return '{';
 }
 
 "}" {
     process_token();
+    pop(&root);
     return '}';
 }
 
@@ -264,11 +263,17 @@ void unclosed_string() {
 }
 
 void process_token() {
+
+    if (scope == 0 && first_time == 0) {
+        push(&root, scope);
+        first_time++;
+    }
+
     int input_size = (strlen(yytext) + 1) * sizeof(char);
 
     yylval.token.line = yylineno;
     yylval.token.column = column;
-    yylval.token.scope = 0; //temporary
+    yylval.token.scope = peek(root);
     yylval.token.content = (char*) malloc(input_size);
     strcpy(yylval.token.content, yytext);
 

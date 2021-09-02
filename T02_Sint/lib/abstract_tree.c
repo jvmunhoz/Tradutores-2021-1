@@ -31,8 +31,6 @@ extern Node* populate_node (char* identifier) {
 extern void print_node(Node* tree_node, int nivel) {
     if (tree_node == NULL) return;
 
-    int count = 0;
-
     for (int i = 0; i < nivel; i++) printf("-");
 
     if (nivel % 4 == 0) {

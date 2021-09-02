@@ -6,6 +6,8 @@
     #include <stdlib.h>
     #include <string.h>
     #include "../lib/abstract_tree.h"
+    #include "../lib/symbol_table.h"
+    #include "../lib/scope_stack.h"
     #define BLUE "\033[1;34:40m"
     #define RED "\033[1;31:40m"
     #define GREEN "\033[1;32:40m"
@@ -18,7 +20,9 @@
     extern int column;
     extern int errors;
     extern FILE *yyin;
-    Node* abstract_tree;   
+    Node* abstract_tree;
+    Symbol* symbol_table[1000];
+    int position = 0; 
 %}
 
 %union{
@@ -26,8 +30,7 @@
     Node* node;
 }
 
-%token <token> LIST_TYPE TYPE
-%token <token> INT FLOAT NIL
+%token <token> TYPE INT FLOAT NIL
 %token <token> MINUS
 %token <token> READ WRITE
 %token <token> STRING ID
@@ -42,7 +45,6 @@
 %type <node> declList
 %type <node> decl
 %type <node> varDecl
-%type <node> typeList
 %type <node> funDecl
 %type <node> params
 %type <node> paramList
@@ -101,35 +103,50 @@ decl:
 ;
 
 varDecl:
-    typeList ID ';' {
+    TYPE ID ';' {
+        Node* type_node = populate_node("Tipo da variável");
+        type_node->token = (Token*) malloc(sizeof(Token));
+        *type_node->token = $1;
+
         $$ = populate_node("Declaração de Variável");
-        $$->child_1 = $1; 
+        $$->child_1 = type_node; 
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $2;
-    }
-;
 
-typeList:
-    TYPE LIST_TYPE {
-        $$ = populate_node("Tipo de Lista");
-        $$->token = (Token*) malloc(sizeof(Token));
-        *$$->token = $1;
-    }
-    | TYPE {
-        $$ = populate_node("Tipo Simples");
-        $$->token = (Token*) malloc(sizeof(Token));
-        *$$->token = $1;
+        symbol_table[position] = populate_symbol_table (
+            $2.line, 
+            $2.column, 
+            $2.scope,
+            $2.content,
+            type_node->token->content,
+            0     
+        );
+        position++;
     }
 ;
 
 funDecl:
-    typeList ID '(' params ')' compoundStmt {
+    TYPE ID '(' params ')' compoundStmt {
+        Node* type_node = populate_node("Tipo da Função");
+        type_node->token = (Token*) malloc(sizeof(Token));
+        *type_node->token = $1;
+
         $$ = populate_node("Declaração de Função");
-        $$->child_1 = $1; 
+        $$->child_1 = type_node; 
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $2;
         $$->child_2 = $4;
-        $$->child_3 = $6; 
+        $$->child_3 = $6;
+
+        symbol_table[position] = populate_symbol_table (
+            $2.line, 
+            $2.column, 
+            $2.scope,
+            $2.content,
+            type_node->token->content,
+            1     
+        );
+        position++; 
     }
 ;
 
@@ -152,11 +169,25 @@ paramList:
 ;
 
 paramTypeList:
-    typeList ID {    
+    TYPE ID {
+        Node* type_node = populate_node("Tipo da Função");
+        type_node->token = (Token*) malloc(sizeof(Token));
+        *type_node->token = $1;
+
         $$ = populate_node("Declaração de Parâmetro");
-        $$->child_1 = $1; 
+        $$->child_1 = type_node; 
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $2;
+
+        symbol_table[position] = populate_symbol_table (
+            $2.line, 
+            $2.column, 
+            $2.scope,
+            $2.content,
+            type_node->token->content,
+            0     
+        );
+        position++;
     }
 ;
 
@@ -447,9 +478,9 @@ constant:
 
 %%
 
- extern void yyerror (char const* e) {
+extern void yyerror (char const* e) {
    fprintf (stderr, "%s\n", e);
- }
+}    
 
 int main(int argc, char *argv[]){
     yyin = fopen(argv[1], "r");
@@ -457,6 +488,11 @@ int main(int argc, char *argv[]){
         yyparse();
         if (errors == 0) {
             print_node(abstract_tree, 1);
+            print_table_header();
+            for (int i = 0; i < position; i++) { 
+                print_symbol(symbol_table[i]);
+            }
+            printf("\n");
         } else printf("\nOpa, foram encontrados "RED"%d"REGULAR" erros no arquivo. Ele não está lexicamente correto!\n", errors);
     }
     else {
