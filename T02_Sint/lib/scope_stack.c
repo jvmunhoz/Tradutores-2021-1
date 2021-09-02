@@ -7,9 +7,6 @@
 #include "scope_stack.h"
 #include "../Bison/C_IPL_Syntax.tab.h"
 
-extern int scope = 0;
-extern StackNode* root = NULL;
-
 extern StackNode* populate_stack(int scope) {
     int stack_size = sizeof(StackNode);
 

@@ -5,13 +5,25 @@ bison:
 	bison -d -o Bison/C_IPL_Syntax.tab.c Bison/C_IPL_Syntax.y -Wcounterexamples
 
 compile:
-	gcc -o tradutor Bison/C_IPL_Syntax.tab.c Flex/lex.yy.c lib/*.c -g -Wall
+	gcc -o tradutor Bison/C_IPL_Syntax.tab.c Flex/lex.yy.c lib/*.c -g -Wall -Wextra -Wpedantic
 
 run:
-	./tradutor tests/test.c
+	./tradutor tests/Ex_Correct_0.c
+
+run_correct_1:
+	./tradutor tests/Ex_Correct_1.c
+
+run_correct_2:
+	./tradutor tests/Ex_Correct_2.c
+
+run_incorrect_1:
+	./tradutor tests/Ex_Incorrect_1.c
+
+run_incorrect_2:
+	./tradutor tests/Ex_Incorrect_2.c
 
 all:
-	make flex bison compile run
+	make flex bison compile
 
 clean:
 	rm -f Bison/C_IPL_Syntax.tab.c Bison/C_IPL_Syntax.tab.h Flex/lex.yy.c tradutor

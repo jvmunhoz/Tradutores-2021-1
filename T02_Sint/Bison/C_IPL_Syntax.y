@@ -23,6 +23,8 @@
     Node* abstract_tree;
     Symbol* symbol_table[1000];
     int position = 0; 
+    int scope = 0;
+    StackNode* root = NULL;
 %}
 
 %union{
@@ -100,6 +102,7 @@ decl:
     | funDecl {
         $$ = $1; 
     }
+    |error { populate_node("Erro"); }
 ;
 
 varDecl:
@@ -213,6 +216,7 @@ stmt:
     | writeFunc {
         $$ = $1;
     }
+    | error { populate_node("Erro"); }
 ;
 
 expStmt:
@@ -448,7 +452,7 @@ args:
 ;
 
 argList:
-    argList ',' logExp {
+    logExp ',' argList {
         $$ = populate_node("Lista de Argumentos");
         $$->child_1 = $1;
         $$->child_2 = $3;
@@ -478,12 +482,14 @@ constant:
 
 %%
 
-extern void yyerror (char const* e) {
-   fprintf (stderr, "%s\n", e);
-}    
+extern void yyerror(const char* e) {
+    printf(RED"ERRO SINTÁTICO -------------> %s\n"REGULAR, e);
+    errors++;
+}  
 
 int main(int argc, char *argv[]){
     yyin = fopen(argv[1], "r");
+    argc++;
     if(yyin){
         yyparse();
         if (errors == 0) {
@@ -493,7 +499,7 @@ int main(int argc, char *argv[]){
                 print_symbol(symbol_table[i]);
             }
             printf("\n");
-        } else printf("\nOpa, foram encontrados "RED"%d"REGULAR" erros no arquivo. Ele não está lexicamente correto!\n", errors);
+        } else printf("\nOpa, foram encontrados "RED"%d"REGULAR" erros no arquivo. A árvore abstrata não será mostrada caso haja erros!\n", errors);
     }
     else {
         printf("Argumento inválido ou inexistente. Tenha certeza que o caminho do arquivo passado como argumento está certo!\n");
