@@ -18,5 +18,6 @@ typedef struct Node {
 } Node;
 
 extern Node* populate_node (char* identifier);
+extern void print_node(Node* tree_node, int nivel);
 
 #endif

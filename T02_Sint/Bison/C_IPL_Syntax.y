@@ -17,7 +17,8 @@
     extern int yylineno;
     extern int column;
     extern int errors;
-    extern FILE *yyin;   
+    extern FILE *yyin;
+    Node* abstract_tree;   
 %}
 
 %union{
@@ -74,12 +75,13 @@
 
 program: 
     declList {
-        $$ = $1;    
+        abstract_tree = populate_node("Topo do Programa");
+        abstract_tree->child_1 = $1;    
     }
 ;
 
 declList: 
-    declList decl {
+    decl declList {
         $$ = populate_node("Lista de Declarações");
         $$->child_1 = $1;
         $$->child_2 = $2;  
@@ -196,13 +198,13 @@ compoundStmt:
 ;
 
 localDecls:
-    localDecls varDecl {
+    varDecl localDecls {
         $$ = populate_node("Declaração de Variáveis");
         $$->child_1 = $1;
         $$->child_2 = $2;
     }
-    | localDecls stmt {
-        $$ = populate_node("Declaração de Statements");
+    | stmt localDecls {
+        $$ = populate_node("Declaração de Statement");
         $$->child_1 = $1;
         $$->child_2 = $2;
     }
@@ -427,7 +429,7 @@ argList:
 
 constant:
     INT {
-        $$ = populate_node("ID");
+        $$ = populate_node("Int");
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $1;
     }
@@ -454,7 +456,7 @@ int main(int argc, char *argv[]){
     if(yyin){
         yyparse();
         if (errors == 0) {
-            printf("\nNão foi encontrado nenhum erro. O arquivo está lexicamente correto!\n");
+            print_node(abstract_tree, 1);
         } else printf("\nOpa, foram encontrados "RED"%d"REGULAR" erros no arquivo. Ele não está lexicamente correto!\n", errors);
     }
     else {
