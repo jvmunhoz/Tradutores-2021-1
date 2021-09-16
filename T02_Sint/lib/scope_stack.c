@@ -30,7 +30,11 @@ extern void push_scope(StackNode** scope_root, int scope) {
 extern void pop_scope(StackNode** scope_root) {
     if (is_empty_scope(*scope_root)) return;
 
+    StackNode* scope_root2 = *scope_root;
+
     *scope_root = (*scope_root)->next_scope;
+
+    free(scope_root2);
     return;
 }
  

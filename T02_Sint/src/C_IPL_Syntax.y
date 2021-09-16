@@ -231,7 +231,7 @@ expStmt:
 
 compoundStmt:
     '{' localDecls '}' {
-        $$ = $2;    
+        $$ = $2;
     }
 ;
 
@@ -514,6 +514,7 @@ int main(int argc, char *argv[]){
                 print_symbol(symbol_root);
                 popSymbol(&symbol_root);
             }
+            pop_scope(&scope_root);
             printf("\n");
         } else {
             printf("\nOpa, foram encontrados "RED"%d"REGULAR" erros no arquivo. A árvore abstrata não será mostrada caso haja erros!\n\n", errors);
@@ -522,6 +523,7 @@ int main(int argc, char *argv[]){
                 print_symbol(symbol_root);
                 popSymbol(&symbol_root);
             }
+            pop_scope(&scope_root);
             printf("\n");
         }
     }

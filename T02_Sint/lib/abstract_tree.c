@@ -29,7 +29,10 @@ extern Node* populate_node (char* identifier) {
 }
 
 extern void print_node(Node* tree_node, int nivel) {
-    if (tree_node == NULL) return;
+    if (tree_node == NULL) {
+        free(tree_node);
+        return;    
+    }
 
     for (int i = 0; i < nivel; i++) printf("-");
 
@@ -51,4 +54,11 @@ extern void print_node(Node* tree_node, int nivel) {
     print_node(tree_node->child_2, nivel + 1);
     print_node(tree_node->child_3, nivel + 1);
     print_node(tree_node->child_4, nivel + 1);
+
+    free(tree_node->identifier);
+    if (tree_node->token) {
+        free(tree_node->token->content);
+    }
+    free(tree_node->token);
+    free(tree_node);
 }

@@ -26,4 +26,7 @@ all:
 	make flex bison compile
 
 clean:
-	rm -f src/C_IPL_Syntax.tab.c src/C_IPL_Syntax.tab.h src/lex.yy.c tradutor
+	rm -f src/C_IPL_Syntax.tab.c src/C_IPL_Syntax.tab.h src/lex.yy.c tradutor logfile.out
+
+memleak:
+	valgrind -v --tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes --log-file="logfile.out" ./tradutor tests/Ex_Correct_0.c

@@ -911,53 +911,47 @@ case 13:
 YY_RULE_SETUP
 #line 136 "src/C_IPL_Lex-Analyzer.l"
 {
-    process_token();
     return ASSIGN;
 }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 141 "src/C_IPL_Lex-Analyzer.l"
+#line 140 "src/C_IPL_Lex-Analyzer.l"
 {
-    process_token();
     return KW_IF;
 }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 146 "src/C_IPL_Lex-Analyzer.l"
+#line 144 "src/C_IPL_Lex-Analyzer.l"
 {
-    process_token();
     return KW_ELSE;
 }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 151 "src/C_IPL_Lex-Analyzer.l"
+#line 148 "src/C_IPL_Lex-Analyzer.l"
 {
-    process_token();
     return KW_FOR;
 }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 156 "src/C_IPL_Lex-Analyzer.l"
+#line 152 "src/C_IPL_Lex-Analyzer.l"
 {
-    process_token();
     return KW_RETURN;
 }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 161 "src/C_IPL_Lex-Analyzer.l"
+#line 156 "src/C_IPL_Lex-Analyzer.l"
 {
-    process_token();
     return READ;
 }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 166 "src/C_IPL_Lex-Analyzer.l"
+#line 160 "src/C_IPL_Lex-Analyzer.l"
 {
     process_token();
     return WRITE;
@@ -965,7 +959,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 171 "src/C_IPL_Lex-Analyzer.l"
+#line 165 "src/C_IPL_Lex-Analyzer.l"
 {
     process_token();
     return STRING;
@@ -973,14 +967,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 176 "src/C_IPL_Lex-Analyzer.l"
+#line 170 "src/C_IPL_Lex-Analyzer.l"
 {
     unclosed_string();
 }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 180 "src/C_IPL_Lex-Analyzer.l"
+#line 174 "src/C_IPL_Lex-Analyzer.l"
 {
     process_token();
     return UN_LISTOP;
@@ -988,7 +982,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 185 "src/C_IPL_Lex-Analyzer.l"
+#line 179 "src/C_IPL_Lex-Analyzer.l"
 {
     process_token();
     return BIN_LISTOP;
@@ -996,14 +990,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 190 "src/C_IPL_Lex-Analyzer.l"
+#line 184 "src/C_IPL_Lex-Analyzer.l"
 {
     // Do nothing
 }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 194 "src/C_IPL_Lex-Analyzer.l"
+#line 188 "src/C_IPL_Lex-Analyzer.l"
 {
     process_token();
     return ID;
@@ -1011,7 +1005,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 199 "src/C_IPL_Lex-Analyzer.l"
+#line 193 "src/C_IPL_Lex-Analyzer.l"
 {
     comment_line = yylineno;
     BEGIN(IN_COMMENT);
@@ -1019,9 +1013,8 @@ YY_RULE_SETUP
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 204 "src/C_IPL_Lex-Analyzer.l"
+#line 198 "src/C_IPL_Lex-Analyzer.l"
 {
-    process_token();
     if (open == 1) {
         pop_scope(&scope_root);
         scope--;
@@ -1032,9 +1025,8 @@ YY_RULE_SETUP
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 214 "src/C_IPL_Lex-Analyzer.l"
+#line 207 "src/C_IPL_Lex-Analyzer.l"
 {
-    process_token();
     scope++;
     push_scope(&scope_root, scope);
     return '(';
@@ -1042,18 +1034,16 @@ YY_RULE_SETUP
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 221 "src/C_IPL_Lex-Analyzer.l"
+#line 213 "src/C_IPL_Lex-Analyzer.l"
 {
-    process_token();
     open = 1;
     return ')';
 }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 227 "src/C_IPL_Lex-Analyzer.l"
+#line 218 "src/C_IPL_Lex-Analyzer.l"
 {
-    process_token();
     if (open == 0) {
         scope++;
         push_scope(&scope_root, scope);
@@ -1063,24 +1053,22 @@ YY_RULE_SETUP
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 236 "src/C_IPL_Lex-Analyzer.l"
+#line 226 "src/C_IPL_Lex-Analyzer.l"
 {
-    process_token();
     pop_scope(&scope_root);
     return '}';
 }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 242 "src/C_IPL_Lex-Analyzer.l"
+#line 231 "src/C_IPL_Lex-Analyzer.l"
 {
-    process_token();
     return ',';
 }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 247 "src/C_IPL_Lex-Analyzer.l"
+#line 235 "src/C_IPL_Lex-Analyzer.l"
 {
     printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", yylineno, column);
     printf(""RED"ERRO LÉXICO ---> "REGULAR"");
@@ -1092,36 +1080,36 @@ YY_RULE_SETUP
 
 case 34:
 YY_RULE_SETUP
-#line 256 "src/C_IPL_Lex-Analyzer.l"
+#line 244 "src/C_IPL_Lex-Analyzer.l"
 BEGIN(INITIAL);
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 257 "src/C_IPL_Lex-Analyzer.l"
+#line 245 "src/C_IPL_Lex-Analyzer.l"
 // eat comment in chunks
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 258 "src/C_IPL_Lex-Analyzer.l"
+#line 246 "src/C_IPL_Lex-Analyzer.l"
 // eat the lone star
 	YY_BREAK
 case 37:
 /* rule 37 can match eol */
 YY_RULE_SETUP
-#line 259 "src/C_IPL_Lex-Analyzer.l"
+#line 247 "src/C_IPL_Lex-Analyzer.l"
 yylineno++;
 	YY_BREAK
 case YY_STATE_EOF(IN_COMMENT):
-#line 260 "src/C_IPL_Lex-Analyzer.l"
+#line 248 "src/C_IPL_Lex-Analyzer.l"
 {unclosed_comment(); yyterminate();}
 	YY_BREAK
 
 case 38:
 YY_RULE_SETUP
-#line 263 "src/C_IPL_Lex-Analyzer.l"
+#line 251 "src/C_IPL_Lex-Analyzer.l"
 ECHO;
 	YY_BREAK
-#line 1124 "src/lex.yy.c"
+#line 1112 "src/lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2089,7 +2077,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 263 "src/C_IPL_Lex-Analyzer.l"
+#line 251 "src/C_IPL_Lex-Analyzer.l"
 
 
 void unclosed_comment() {

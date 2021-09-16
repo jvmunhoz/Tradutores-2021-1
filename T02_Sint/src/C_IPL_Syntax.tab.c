@@ -2230,7 +2230,7 @@ yyreduce:
   case 25: /* compoundStmt: '{' localDecls '}'  */
 #line 233 "src/C_IPL_Syntax.y"
                        {
-        (yyval.node) = (yyvsp[-1].node);    
+        (yyval.node) = (yyvsp[-1].node);  
     }
 #line 2236 "src/C_IPL_Syntax.tab.c"
     break;
@@ -2891,6 +2891,7 @@ int main(int argc, char *argv[]){
                 print_symbol(symbol_root);
                 popSymbol(&symbol_root);
             }
+            pop_scope(&scope_root);
             printf("\n");
         } else {
             printf("\nOpa, foram encontrados "RED"%d"REGULAR" erros no arquivo. A árvore abstrata não será mostrada caso haja erros!\n\n", errors);
@@ -2899,6 +2900,7 @@ int main(int argc, char *argv[]){
                 print_symbol(symbol_root);
                 popSymbol(&symbol_root);
             }
+            pop_scope(&scope_root);
             printf("\n");
         }
     }

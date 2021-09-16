@@ -49,7 +49,13 @@ extern void pushSymbol(Symbol** symbol_root, int line, int column, int scope, ch
 extern void popSymbol(Symbol** symbol_root) {
     if (is_empty_symbol(*symbol_root)) return;
 
+    Symbol* symbol_root2 = *symbol_root;
+
     *symbol_root = (*symbol_root)->next_symbol;
+
+    free(symbol_root2->ID);
+    free(symbol_root2->type);
+    free(symbol_root2);
     return;
 }
 

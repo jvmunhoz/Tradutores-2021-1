@@ -134,32 +134,26 @@ ID          [A-Za-z_][A-Za-z0-9_]*
 }
 
 {ASSIGN} {
-    process_token();
     return ASSIGN;
 }
 
 {IF} {
-    process_token();
     return KW_IF;
 }
 
 {ELSE} {
-    process_token();
     return KW_ELSE;
 }
 
 {FOR} {
-    process_token();
     return KW_FOR;
 }
 
 {RETURN} {
-    process_token();
     return KW_RETURN;
 }
 
 {READ} {
-    process_token();
     return READ;
 }
 
@@ -202,7 +196,6 @@ ID          [A-Za-z_][A-Za-z0-9_]*
 }
 
 ";" {
-    process_token();
     if (open == 1) {
         pop_scope(&scope_root);
         scope--;
@@ -212,20 +205,17 @@ ID          [A-Za-z_][A-Za-z0-9_]*
 }
 
 "(" {
-    process_token();
     scope++;
     push_scope(&scope_root, scope);
     return '(';
 }
 
 ")" {
-    process_token();
     open = 1;
     return ')';
 }
 
 "{" {
-    process_token();
     if (open == 0) {
         scope++;
         push_scope(&scope_root, scope);
@@ -234,13 +224,11 @@ ID          [A-Za-z_][A-Za-z0-9_]*
 }
 
 "}" {
-    process_token();
     pop_scope(&scope_root);
     return '}';
 }
 
 "," {
-    process_token();
     return ',';
 }
 
