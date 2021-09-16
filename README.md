@@ -1,7 +1,15 @@
 # Tradutores-2021-1
 Repositório para o trabalho de Tradures da UnB com a professora Nalon, referente ao primeiro semestre de 2021.
 
-Para a matéria de Tradutores da Universidade de Brasília, o trabalho obrigatório consiste em criar um tradutor que consiga transformar um arquivo escrito na linguagem C-IPL em um código executável através das ferramentas Flex e Bison. Espera-se que ao implementar o tradutor, o aluno entenda mais profundamente de que maneira os programas são compilados e como certas características de algumas linguagens deixam esse processo mais fácil ou mais difícil.
+Listas encadeadas são uma das estruturas de dados mais utilizadas atualmente. Entretanto, apesar de sua popularidade, é também uma potencial fonte de problemas, especialmente para programadores inexperientes, uma vez que para linguagens que não possuem suporte nativo a listas é preciso criar e manipular as estruturas de dados que definem seu comportamento. Portanto, na linguagem C-IPL proposta nesse trabalho, através do suporte nativo a listas junto com algumas operações básicas sobre elas, temos como motivação os objetivos a seguir:
+
+1 - Diminuir a quantidade de erros e aumentar a qualidade geral do código devido à implementação nativa.
+
+2 - Aumentar a produtividade dos programadores, pois estarão livres de ter que lidar com a criação da estrutura de dados e poderão focar somente em sua utilização.
+
+3 - Aumentar a reusabilidade e manutenibilidade de código, pois deixando a estrutura de dados nativa evita-se que cada programador tenha que implementar sua própria versão e portanto não será preciso entender as características de cada implementação específica, uma vez que, por ser nativa, será a mesma para qualquer programa utilizando a linguagem.
+
+----------------------------------------------------------------
 
 Para compilar, simplesmente entre na pasta raiz e digite:
 
