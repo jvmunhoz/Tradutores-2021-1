@@ -1,9 +1,10 @@
 int i;
 int count;
-int age;
-int list lst;
 
 int main() {
+    int list lst;
+    int age;
+
     lst = NIL;
 
     count = 10;
@@ -15,7 +16,6 @@ int main() {
 
     for (i = 0; i < count; i = i + 1) {
         age = (age + (% lst));
-    
     // falta chaves aqui
 
     write("A soma da idade de todos os 10 alunos é ");write(age);

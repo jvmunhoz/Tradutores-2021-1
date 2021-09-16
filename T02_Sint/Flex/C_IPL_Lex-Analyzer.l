@@ -17,8 +17,12 @@
     void print_token(char token_name[]);
     void process_token();
     void unclosed_string();
+    int prev_column = 1;
+    int prev_line = 1;
     int column = 1;
     int errors = 0;
+    int open = 0;
+    int declaration;
     int comment_line = 0;
     int first_time = 0;
 %}
@@ -80,6 +84,7 @@ ID          [A-Za-z_][A-Za-z0-9_]*
 
 {TYPE} {
     process_token();
+    declaration = 1;
     return TYPE;
 }
 
@@ -198,23 +203,33 @@ ID          [A-Za-z_][A-Za-z0-9_]*
 
 ";" {
     process_token();
+    if (open == 1) {
+        pop(&root);
+        scope--;
+        open = 0;
+    }
     return ';';
 }
 
 "(" {
     process_token();
+    scope++;
+    push(&root, scope);
     return '(';
 }
 
 ")" {
     process_token();
+    open = 1;
     return ')';
 }
 
 "{" {
     process_token();
-    scope++;
-    push(&root, scope);
+    if (open == 0) {
+        scope++;
+        push(&root, scope);
+    }  else open = 0;
     return '{';
 }
 
@@ -268,6 +283,8 @@ void process_token() {
         push(&root, scope);
         first_time++;
     }
+    prev_line = yylineno;
+    prev_column = column;
 
     int input_size = (strlen(yytext) + 1) * sizeof(char);
 

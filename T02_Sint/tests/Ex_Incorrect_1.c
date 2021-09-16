@@ -1,19 +1,19 @@
 int number;
 float number2;
-float number3 //façta um ; aqui
+float number3 // falta um ; aqui
 float number4;
 float number5;
 float number6;
 int list LST;
 
-main () { // falta o tipo da função main
+main () { // falta o tipo da main
 
     if ((number3 == number4) && (number6 > number3)) {
-    number3 = number4;
+    number3 = number4 * (number - number2);
 }   else if ((number != number2) || (number5 < number2)) {
-    number = 0;
+    number2 = number5 / (number3 + number4);
 }   else if ((!number2 >= number4) || (!number3 <= number6)) {
-    number5 = 5;
+    number6 = number5 - (% LST);
 }
 return 0;
 

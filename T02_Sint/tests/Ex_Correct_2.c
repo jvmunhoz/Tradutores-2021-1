@@ -1,9 +1,10 @@
 int i;
 int count;
-int age;
-int list lst;
 
 int main() {
+    int list lst;
+    int age;
+
     lst = NIL;
 
     count = 10;

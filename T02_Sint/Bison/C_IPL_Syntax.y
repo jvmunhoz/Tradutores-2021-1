@@ -16,8 +16,8 @@
     extern int yylex_destroy();
     extern int yyterminate();
     extern void yyerror(const char* e);
-    extern int yylineno;
-    extern int column;
+    extern int prev_line;
+    extern int prev_column;
     extern int errors;
     extern FILE *yyin;
     Node* abstract_tree;
@@ -364,6 +364,13 @@ sumExp:
         *$$->token = $2; 
         $$->child_2 = $3;  
     }
+    | sumExp MINUS mulExp {
+        $$ = populate_node("Operação de Subtração");
+        $$->child_1 = $1;
+        $$->token = (Token*) malloc(sizeof(Token));
+        *$$->token = $2; 
+        $$->child_2 = $3;  
+    }
     | mulExp {
        $$ = $1; 
     }
@@ -483,7 +490,7 @@ constant:
 %%
 
 extern void yyerror(const char* e) {
-    printf(RED"ERRO SINTÁTICO -------------> %s\n"REGULAR, e);
+    printf(RED"[Linha: %d - Coluna: %d] %s\n"REGULAR, prev_line, prev_column, e);
     errors++;
 }  
 
@@ -499,7 +506,14 @@ int main(int argc, char *argv[]){
                 print_symbol(symbol_table[i]);
             }
             printf("\n");
-        } else printf("\nOpa, foram encontrados "RED"%d"REGULAR" erros no arquivo. A árvore abstrata não será mostrada caso haja erros!\n", errors);
+        } else {
+            printf("\nOpa, foram encontrados "RED"%d"REGULAR" erros no arquivo. A árvore abstrata não será mostrada caso haja erros!\n\n", errors);
+            print_table_header();
+            for (int i = 0; i < position; i++) { 
+                print_symbol(symbol_table[i]);
+            }
+            printf("\n");
+        }
     }
     else {
         printf("Argumento inválido ou inexistente. Tenha certeza que o caminho do arquivo passado como argumento está certo!\n");
