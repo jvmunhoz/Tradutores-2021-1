@@ -204,7 +204,7 @@ ID          [A-Za-z_][A-Za-z0-9_]*
 ";" {
     process_token();
     if (open == 1) {
-        pop(&root);
+        pop_scope(&scope_root);
         scope--;
         open = 0;
     }
@@ -214,7 +214,7 @@ ID          [A-Za-z_][A-Za-z0-9_]*
 "(" {
     process_token();
     scope++;
-    push(&root, scope);
+    push_scope(&scope_root, scope);
     return '(';
 }
 
@@ -228,14 +228,14 @@ ID          [A-Za-z_][A-Za-z0-9_]*
     process_token();
     if (open == 0) {
         scope++;
-        push(&root, scope);
+        push_scope(&scope_root, scope);
     }  else open = 0;
     return '{';
 }
 
 "}" {
     process_token();
-    pop(&root);
+    pop_scope(&scope_root);
     return '}';
 }
 
@@ -280,7 +280,7 @@ void unclosed_string() {
 void process_token() {
 
     if (scope == 0 && first_time == 0) {
-        push(&root, scope);
+        push_scope(&scope_root, scope);
         first_time++;
     }
     prev_line = yylineno;
@@ -290,7 +290,7 @@ void process_token() {
 
     yylval.token.line = yylineno;
     yylval.token.column = column;
-    yylval.token.scope = peek(root);
+    yylval.token.scope = peek_scope(scope_root);
     yylval.token.content = (char*) malloc(input_size);
     strcpy(yylval.token.content, yytext);
 

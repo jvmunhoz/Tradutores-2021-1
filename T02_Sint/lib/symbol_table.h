@@ -11,16 +11,12 @@ typedef struct Symbol {
         char* ID;
         char* type;
         int is_function;
+        struct Symbol* next_symbol;
 } Symbol;
 
-extern Symbol* populate_symbol_table (
-    int line, 
-    int column,
-    int scope,
-    char* ID, 
-    char* type, 
-    int is_function
-);
+extern void pushSymbol(Symbol** symbol_root, int line, int column, int scope, char* ID, char* type, int is_function);
+
+extern void popSymbol(Symbol** symbol_root);
 
 extern void print_symbol(Symbol* symbol);
 extern void print_table_header();

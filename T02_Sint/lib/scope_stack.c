@@ -16,25 +16,25 @@ extern StackNode* populate_stack(int scope) {
     return stackNode;
 }
  
-int isEmpty(StackNode* root) {
-    return !root;
+int is_empty_scope(StackNode* scope_root) {
+    return !scope_root;
 }
  
-extern void push(StackNode** root, int scope) {
+extern void push_scope(StackNode** scope_root, int scope) {
     StackNode* stackNode = populate_stack(scope);
 
-    stackNode->next_scope = *root;
-    *root = stackNode;
+    stackNode->next_scope = *scope_root;
+    *scope_root = stackNode;
 }
  
-extern void pop(StackNode** root) {
-    if (isEmpty(*root)) return;
+extern void pop_scope(StackNode** scope_root) {
+    if (is_empty_scope(*scope_root)) return;
 
-    *root = (*root)->next_scope;
+    *scope_root = (*scope_root)->next_scope;
     return;
 }
  
-extern int peek(StackNode* root) {
-    if (isEmpty(root)) return INT_MIN;
-    return root->scope;
+extern int peek_scope(StackNode* scope_root) {
+    if (is_empty_scope(scope_root)) return INT_MIN;
+    return scope_root->scope;
 }

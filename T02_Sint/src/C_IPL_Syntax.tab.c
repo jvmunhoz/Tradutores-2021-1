@@ -88,10 +88,10 @@
     extern int errors;
     extern FILE *yyin;
     Node* abstract_tree;
-    Symbol* symbol_table[1000];
     int position = 0; 
     int scope = 0;
-    StackNode* root = NULL;
+    StackNode* scope_root = NULL;
+    Symbol* symbol_root = NULL;
 
 #line 97 "src/C_IPL_Syntax.tab.c"
 
@@ -565,13 +565,13 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,    81,    81,    88,    93,    99,   102,   105,   109,   132,
-     157,   160,   164,   169,   175,   198,   201,   204,   207,   210,
-     213,   216,   219,   223,   226,   230,   236,   241,   246,   249,
-     255,   260,   269,   279,   286,   294,   300,   314,   320,   326,
-     333,   339,   346,   352,   359,   365,   372,   379,   385,   392,
-     398,   403,   409,   414,   422,   428,   434,   437,   440,   443,
-     451,   460,   463,   467,   472,   478,   483,   488
+       0,    81,    81,    88,    93,    99,   102,   105,   109,   133,
+     159,   162,   166,   171,   177,   201,   204,   207,   210,   213,
+     216,   219,   222,   226,   229,   233,   239,   244,   249,   252,
+     258,   263,   272,   282,   289,   297,   303,   317,   323,   329,
+     336,   342,   349,   355,   362,   368,   375,   382,   388,   395,
+     401,   406,   412,   417,   425,   431,   437,   440,   443,   446,
+     454,   463,   466,   470,   475,   481,   486,   491
 };
 #endif
 
@@ -2051,7 +2051,8 @@ yyreduce:
         (yyval.node)->token = (Token*) malloc(sizeof(Token));
         *(yyval.node)->token = (yyvsp[-1].token);
 
-        symbol_table[position] = populate_symbol_table (
+        pushSymbol (
+            &symbol_root,
             (yyvsp[-1].token).line, 
             (yyvsp[-1].token).column, 
             (yyvsp[-1].token).scope,
@@ -2061,11 +2062,11 @@ yyreduce:
         );
         position++;
     }
-#line 2065 "src/C_IPL_Syntax.tab.c"
+#line 2066 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 9: /* funDecl: TYPE ID '(' params ')' compoundStmt  */
-#line 132 "src/C_IPL_Syntax.y"
+#line 133 "src/C_IPL_Syntax.y"
                                         {
         Node* type_node = populate_node("Tipo da Função");
         type_node->token = (Token*) malloc(sizeof(Token));
@@ -2078,7 +2079,8 @@ yyreduce:
         (yyval.node)->child_2 = (yyvsp[-2].node);
         (yyval.node)->child_3 = (yyvsp[0].node);
 
-        symbol_table[position] = populate_symbol_table (
+        pushSymbol (
+            &symbol_root,
             (yyvsp[-4].token).line, 
             (yyvsp[-4].token).column, 
             (yyvsp[-4].token).scope,
@@ -2088,43 +2090,43 @@ yyreduce:
         );
         position++; 
     }
-#line 2092 "src/C_IPL_Syntax.tab.c"
+#line 2094 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 10: /* params: paramList  */
-#line 157 "src/C_IPL_Syntax.y"
+#line 159 "src/C_IPL_Syntax.y"
               {
        (yyval.node) = (yyvsp[0].node); 
     }
-#line 2100 "src/C_IPL_Syntax.tab.c"
+#line 2102 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 11: /* params: %empty  */
-#line 160 "src/C_IPL_Syntax.y"
+#line 162 "src/C_IPL_Syntax.y"
       {(yyval.node) = NULL;}
-#line 2106 "src/C_IPL_Syntax.tab.c"
+#line 2108 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 12: /* paramList: paramTypeList ',' paramList  */
-#line 164 "src/C_IPL_Syntax.y"
+#line 166 "src/C_IPL_Syntax.y"
                                 {
         (yyval.node) = populate_node("Lista de Parâmetros");
         (yyval.node)->child_1 = (yyvsp[-2].node);
         (yyval.node)->child_2 = (yyvsp[0].node);
     }
-#line 2116 "src/C_IPL_Syntax.tab.c"
+#line 2118 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 13: /* paramList: paramTypeList  */
-#line 169 "src/C_IPL_Syntax.y"
+#line 171 "src/C_IPL_Syntax.y"
                     {
         (yyval.node) = (yyvsp[0].node);
     }
-#line 2124 "src/C_IPL_Syntax.tab.c"
+#line 2126 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 14: /* paramTypeList: TYPE ID  */
-#line 175 "src/C_IPL_Syntax.y"
+#line 177 "src/C_IPL_Syntax.y"
             {
         Node* type_node = populate_node("Tipo da Função");
         type_node->token = (Token*) malloc(sizeof(Token));
@@ -2135,7 +2137,8 @@ yyreduce:
         (yyval.node)->token = (Token*) malloc(sizeof(Token));
         *(yyval.node)->token = (yyvsp[0].token);
 
-        symbol_table[position] = populate_symbol_table (
+        pushSymbol (
+            &symbol_root,
             (yyvsp[0].token).line, 
             (yyvsp[0].token).column, 
             (yyvsp[0].token).scope,
@@ -2145,152 +2148,152 @@ yyreduce:
         );
         position++;
     }
-#line 2149 "src/C_IPL_Syntax.tab.c"
+#line 2152 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 15: /* stmt: expStmt  */
-#line 198 "src/C_IPL_Syntax.y"
+#line 201 "src/C_IPL_Syntax.y"
             {
         (yyval.node) = (yyvsp[0].node);
     }
-#line 2157 "src/C_IPL_Syntax.tab.c"
+#line 2160 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 16: /* stmt: compoundStmt  */
-#line 201 "src/C_IPL_Syntax.y"
+#line 204 "src/C_IPL_Syntax.y"
                    {
         (yyval.node) = (yyvsp[0].node);
     }
-#line 2165 "src/C_IPL_Syntax.tab.c"
+#line 2168 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 17: /* stmt: ifStmt  */
-#line 204 "src/C_IPL_Syntax.y"
+#line 207 "src/C_IPL_Syntax.y"
              {
         (yyval.node) = (yyvsp[0].node);
     }
-#line 2173 "src/C_IPL_Syntax.tab.c"
+#line 2176 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 18: /* stmt: forStmt  */
-#line 207 "src/C_IPL_Syntax.y"
+#line 210 "src/C_IPL_Syntax.y"
               {
         (yyval.node) = (yyvsp[0].node);
     }
-#line 2181 "src/C_IPL_Syntax.tab.c"
+#line 2184 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 19: /* stmt: returnStmt  */
-#line 210 "src/C_IPL_Syntax.y"
+#line 213 "src/C_IPL_Syntax.y"
                  {
         (yyval.node) = (yyvsp[0].node);
     }
-#line 2189 "src/C_IPL_Syntax.tab.c"
+#line 2192 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 20: /* stmt: readFunc  */
-#line 213 "src/C_IPL_Syntax.y"
+#line 216 "src/C_IPL_Syntax.y"
                {
         (yyval.node) = (yyvsp[0].node);
     }
-#line 2197 "src/C_IPL_Syntax.tab.c"
+#line 2200 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 21: /* stmt: writeFunc  */
-#line 216 "src/C_IPL_Syntax.y"
+#line 219 "src/C_IPL_Syntax.y"
                 {
         (yyval.node) = (yyvsp[0].node);
     }
-#line 2205 "src/C_IPL_Syntax.tab.c"
+#line 2208 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 22: /* stmt: error  */
-#line 219 "src/C_IPL_Syntax.y"
+#line 222 "src/C_IPL_Syntax.y"
             { populate_node("Erro"); }
-#line 2211 "src/C_IPL_Syntax.tab.c"
+#line 2214 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 23: /* expStmt: exp ';'  */
-#line 223 "src/C_IPL_Syntax.y"
+#line 226 "src/C_IPL_Syntax.y"
             {
         (yyval.node) = (yyvsp[-1].node); 
     }
-#line 2219 "src/C_IPL_Syntax.tab.c"
+#line 2222 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 24: /* expStmt: ';'  */
-#line 226 "src/C_IPL_Syntax.y"
+#line 229 "src/C_IPL_Syntax.y"
           {(yyval.node) = NULL;}
-#line 2225 "src/C_IPL_Syntax.tab.c"
+#line 2228 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 25: /* compoundStmt: '{' localDecls '}'  */
-#line 230 "src/C_IPL_Syntax.y"
+#line 233 "src/C_IPL_Syntax.y"
                        {
         (yyval.node) = (yyvsp[-1].node);    
     }
-#line 2233 "src/C_IPL_Syntax.tab.c"
+#line 2236 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 26: /* localDecls: varDecl localDecls  */
-#line 236 "src/C_IPL_Syntax.y"
+#line 239 "src/C_IPL_Syntax.y"
                        {
         (yyval.node) = populate_node("Declaração de Variáveis");
         (yyval.node)->child_1 = (yyvsp[-1].node);
         (yyval.node)->child_2 = (yyvsp[0].node);
     }
-#line 2243 "src/C_IPL_Syntax.tab.c"
+#line 2246 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 27: /* localDecls: stmt localDecls  */
-#line 241 "src/C_IPL_Syntax.y"
+#line 244 "src/C_IPL_Syntax.y"
                       {
         (yyval.node) = populate_node("Declaração de Statement");
         (yyval.node)->child_1 = (yyvsp[-1].node);
         (yyval.node)->child_2 = (yyvsp[0].node);
     }
-#line 2253 "src/C_IPL_Syntax.tab.c"
+#line 2256 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 28: /* localDecls: varDecl  */
-#line 246 "src/C_IPL_Syntax.y"
+#line 249 "src/C_IPL_Syntax.y"
               {
         (yyval.node) = (yyvsp[0].node);
     }
-#line 2261 "src/C_IPL_Syntax.tab.c"
+#line 2264 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 29: /* localDecls: stmt  */
-#line 249 "src/C_IPL_Syntax.y"
+#line 252 "src/C_IPL_Syntax.y"
            {
         (yyval.node) = (yyvsp[0].node);
     }
-#line 2269 "src/C_IPL_Syntax.tab.c"
+#line 2272 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 30: /* ifStmt: KW_IF '(' logExp ')' stmt  */
-#line 255 "src/C_IPL_Syntax.y"
+#line 258 "src/C_IPL_Syntax.y"
                                          {
         (yyval.node) = populate_node("Função IF");
         (yyval.node)->child_1 = (yyvsp[-2].node);
         (yyval.node)->child_2 = (yyvsp[0].node);
     }
-#line 2279 "src/C_IPL_Syntax.tab.c"
+#line 2282 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 31: /* ifStmt: KW_IF '(' logExp ')' stmt KW_ELSE stmt  */
-#line 260 "src/C_IPL_Syntax.y"
+#line 263 "src/C_IPL_Syntax.y"
                                              {
         (yyval.node) = populate_node("Função IF ELSE");
         (yyval.node)->child_1 = (yyvsp[-4].node);
         (yyval.node)->child_2 = (yyvsp[-2].node);
         (yyval.node)->child_3 = (yyvsp[0].node);
     }
-#line 2290 "src/C_IPL_Syntax.tab.c"
+#line 2293 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 32: /* forStmt: KW_FOR '(' exp ';' exp ';' exp ')' stmt  */
-#line 269 "src/C_IPL_Syntax.y"
+#line 272 "src/C_IPL_Syntax.y"
                                             {
         (yyval.node) = populate_node("Loop For");
         (yyval.node)->child_1 = (yyvsp[-6].node);
@@ -2298,41 +2301,41 @@ yyreduce:
         (yyval.node)->child_3 = (yyvsp[-2].node);
         (yyval.node)->child_4 = (yyvsp[0].node);
     }
-#line 2302 "src/C_IPL_Syntax.tab.c"
+#line 2305 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 33: /* returnStmt: KW_RETURN expStmt  */
-#line 279 "src/C_IPL_Syntax.y"
+#line 282 "src/C_IPL_Syntax.y"
                       {
         (yyval.node) = populate_node("Retorno");
         (yyval.node)->child_1 = (yyvsp[0].node); 
     }
-#line 2311 "src/C_IPL_Syntax.tab.c"
+#line 2314 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 34: /* readFunc: READ '(' ID ')'  */
-#line 286 "src/C_IPL_Syntax.y"
+#line 289 "src/C_IPL_Syntax.y"
                     {
         (yyval.node) = populate_node("Leitura");
         (yyval.node)->token = (Token*) malloc(sizeof(Token));
         *(yyval.node)->token = (yyvsp[-1].token); 
     }
-#line 2321 "src/C_IPL_Syntax.tab.c"
+#line 2324 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 35: /* writeFunc: WRITE '(' logExp ')'  */
-#line 294 "src/C_IPL_Syntax.y"
+#line 297 "src/C_IPL_Syntax.y"
                          {
         (yyval.node) = populate_node("Escrita de uma Expressão");
         (yyval.node)->token = (Token*) malloc(sizeof(Token));
         *(yyval.node)->token = (yyvsp[-3].token);
         (yyval.node)->child_1 = (yyvsp[-1].node); 
     }
-#line 2332 "src/C_IPL_Syntax.tab.c"
+#line 2335 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 36: /* writeFunc: WRITE '(' STRING ')'  */
-#line 300 "src/C_IPL_Syntax.y"
+#line 303 "src/C_IPL_Syntax.y"
                            {
 
         Node* string_node = populate_node("String");
@@ -2344,30 +2347,30 @@ yyreduce:
         *(yyval.node)->token = (yyvsp[-3].token);
         (yyval.node)->child_1 = string_node; 
     }
-#line 2348 "src/C_IPL_Syntax.tab.c"
+#line 2351 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 37: /* exp: ID ASSIGN exp  */
-#line 314 "src/C_IPL_Syntax.y"
+#line 317 "src/C_IPL_Syntax.y"
                   {
         (yyval.node) = populate_node("Atribuição de variável");
         (yyval.node)->token = (Token*) malloc(sizeof(Token));
         *(yyval.node)->token = (yyvsp[-2].token); 
         (yyval.node)->child_1 = (yyvsp[0].node);  
     }
-#line 2359 "src/C_IPL_Syntax.tab.c"
+#line 2362 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 38: /* exp: logExp  */
-#line 320 "src/C_IPL_Syntax.y"
+#line 323 "src/C_IPL_Syntax.y"
             {
         (yyval.node) = (yyvsp[0].node);
     }
-#line 2367 "src/C_IPL_Syntax.tab.c"
+#line 2370 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 39: /* logExp: logExp LOGOP listExp  */
-#line 326 "src/C_IPL_Syntax.y"
+#line 329 "src/C_IPL_Syntax.y"
                          {
         (yyval.node) = populate_node("Operação Lógica");
         (yyval.node)->child_1 = (yyvsp[-2].node);
@@ -2375,19 +2378,19 @@ yyreduce:
         *(yyval.node)->token = (yyvsp[-1].token); 
         (yyval.node)->child_2 = (yyvsp[0].node);  
     }
-#line 2379 "src/C_IPL_Syntax.tab.c"
+#line 2382 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 40: /* logExp: listExp  */
-#line 333 "src/C_IPL_Syntax.y"
+#line 336 "src/C_IPL_Syntax.y"
              {
         (yyval.node) = (yyvsp[0].node);
     }
-#line 2387 "src/C_IPL_Syntax.tab.c"
+#line 2390 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 41: /* listExp: listExp BIN_LISTOP relExp  */
-#line 339 "src/C_IPL_Syntax.y"
+#line 342 "src/C_IPL_Syntax.y"
                               {
         (yyval.node) = populate_node("Operação Binária de Listas");
         (yyval.node)->child_1 = (yyvsp[-2].node);
@@ -2395,19 +2398,19 @@ yyreduce:
         *(yyval.node)->token = (yyvsp[-1].token); 
         (yyval.node)->child_2 = (yyvsp[0].node);  
     }
-#line 2399 "src/C_IPL_Syntax.tab.c"
+#line 2402 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 42: /* listExp: relExp  */
-#line 346 "src/C_IPL_Syntax.y"
+#line 349 "src/C_IPL_Syntax.y"
              {
         (yyval.node) = (yyvsp[0].node);
     }
-#line 2407 "src/C_IPL_Syntax.tab.c"
+#line 2410 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 43: /* relExp: relExp RELOP sumExp  */
-#line 352 "src/C_IPL_Syntax.y"
+#line 355 "src/C_IPL_Syntax.y"
                         {
         (yyval.node) = populate_node("Operação Relacional");
         (yyval.node)->child_1 = (yyvsp[-2].node);
@@ -2415,19 +2418,19 @@ yyreduce:
         *(yyval.node)->token = (yyvsp[-1].token); 
         (yyval.node)->child_2 = (yyvsp[0].node);  
     }
-#line 2419 "src/C_IPL_Syntax.tab.c"
+#line 2422 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 44: /* relExp: sumExp  */
-#line 359 "src/C_IPL_Syntax.y"
+#line 362 "src/C_IPL_Syntax.y"
              {
         (yyval.node) = (yyvsp[0].node);
     }
-#line 2427 "src/C_IPL_Syntax.tab.c"
+#line 2430 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 45: /* sumExp: sumExp SUMOP mulExp  */
-#line 365 "src/C_IPL_Syntax.y"
+#line 368 "src/C_IPL_Syntax.y"
                         {
         (yyval.node) = populate_node("Operação de Soma");
         (yyval.node)->child_1 = (yyvsp[-2].node);
@@ -2435,11 +2438,11 @@ yyreduce:
         *(yyval.node)->token = (yyvsp[-1].token); 
         (yyval.node)->child_2 = (yyvsp[0].node);  
     }
-#line 2439 "src/C_IPL_Syntax.tab.c"
+#line 2442 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 46: /* sumExp: sumExp MINUS mulExp  */
-#line 372 "src/C_IPL_Syntax.y"
+#line 375 "src/C_IPL_Syntax.y"
                           {
         (yyval.node) = populate_node("Operação de Subtração");
         (yyval.node)->child_1 = (yyvsp[-2].node);
@@ -2447,19 +2450,19 @@ yyreduce:
         *(yyval.node)->token = (yyvsp[-1].token); 
         (yyval.node)->child_2 = (yyvsp[0].node);  
     }
-#line 2451 "src/C_IPL_Syntax.tab.c"
+#line 2454 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 47: /* sumExp: mulExp  */
-#line 379 "src/C_IPL_Syntax.y"
+#line 382 "src/C_IPL_Syntax.y"
              {
        (yyval.node) = (yyvsp[0].node); 
     }
-#line 2459 "src/C_IPL_Syntax.tab.c"
+#line 2462 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 48: /* mulExp: mulExp MULOP unaryListExp  */
-#line 385 "src/C_IPL_Syntax.y"
+#line 388 "src/C_IPL_Syntax.y"
                               {
         (yyval.node) = populate_node("Operação de Multiplicação");
         (yyval.node)->child_1 = (yyvsp[-2].node);
@@ -2467,183 +2470,183 @@ yyreduce:
         *(yyval.node)->token = (yyvsp[-1].token); 
         (yyval.node)->child_2 = (yyvsp[0].node);  
     }
-#line 2471 "src/C_IPL_Syntax.tab.c"
+#line 2474 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 49: /* mulExp: unaryListExp  */
-#line 392 "src/C_IPL_Syntax.y"
+#line 395 "src/C_IPL_Syntax.y"
                    {
         (yyval.node) = (yyvsp[0].node);
     }
-#line 2479 "src/C_IPL_Syntax.tab.c"
+#line 2482 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 50: /* unaryListExp: unaryListOp unaryExp  */
-#line 398 "src/C_IPL_Syntax.y"
+#line 401 "src/C_IPL_Syntax.y"
                          {
         (yyval.node) = populate_node("Operação Unária de Lista");
         (yyval.node)->child_1 = (yyvsp[-1].node);
         (yyval.node)->child_2 = (yyvsp[0].node);   
     }
-#line 2489 "src/C_IPL_Syntax.tab.c"
+#line 2492 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 51: /* unaryListExp: unaryExp  */
-#line 403 "src/C_IPL_Syntax.y"
+#line 406 "src/C_IPL_Syntax.y"
                {
         (yyval.node) = (yyvsp[0].node);
     }
-#line 2497 "src/C_IPL_Syntax.tab.c"
+#line 2500 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 52: /* unaryListOp: UN_LISTOP  */
-#line 409 "src/C_IPL_Syntax.y"
+#line 412 "src/C_IPL_Syntax.y"
               {    
         (yyval.node) = populate_node("Operador Unário de Lista");
         (yyval.node)->token = (Token*) malloc(sizeof(Token));
         *(yyval.node)->token = (yyvsp[0].token);    
     }
-#line 2507 "src/C_IPL_Syntax.tab.c"
+#line 2510 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 53: /* unaryListOp: EXCLAM  */
-#line 414 "src/C_IPL_Syntax.y"
+#line 417 "src/C_IPL_Syntax.y"
              {
         (yyval.node) = populate_node("Ponto de Exclamação");
         (yyval.node)->token = (Token*) malloc(sizeof(Token));
         *(yyval.node)->token = (yyvsp[0].token);
     }
-#line 2517 "src/C_IPL_Syntax.tab.c"
+#line 2520 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 54: /* unaryExp: MINUS factor  */
-#line 422 "src/C_IPL_Syntax.y"
+#line 425 "src/C_IPL_Syntax.y"
                  {
         (yyval.node) = populate_node("Expressão Aritmética Unária");
         (yyval.node)->token = (Token*) malloc(sizeof(Token));
         *(yyval.node)->token = (yyvsp[-1].token);
         (yyval.node)->child_1 = (yyvsp[0].node);    
     }
-#line 2528 "src/C_IPL_Syntax.tab.c"
+#line 2531 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 55: /* unaryExp: factor  */
-#line 428 "src/C_IPL_Syntax.y"
+#line 431 "src/C_IPL_Syntax.y"
              {
         (yyval.node) = (yyvsp[0].node);
     }
-#line 2536 "src/C_IPL_Syntax.tab.c"
+#line 2539 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 56: /* factor: '(' exp ')'  */
-#line 434 "src/C_IPL_Syntax.y"
+#line 437 "src/C_IPL_Syntax.y"
                 {
        (yyval.node) = (yyvsp[-1].node); 
     }
-#line 2544 "src/C_IPL_Syntax.tab.c"
+#line 2547 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 57: /* factor: call  */
-#line 437 "src/C_IPL_Syntax.y"
+#line 440 "src/C_IPL_Syntax.y"
            {
        (yyval.node) = (yyvsp[0].node); 
     }
-#line 2552 "src/C_IPL_Syntax.tab.c"
+#line 2555 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 58: /* factor: constant  */
-#line 440 "src/C_IPL_Syntax.y"
+#line 443 "src/C_IPL_Syntax.y"
                {
        (yyval.node) = (yyvsp[0].node); 
     }
-#line 2560 "src/C_IPL_Syntax.tab.c"
+#line 2563 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 59: /* factor: ID  */
-#line 443 "src/C_IPL_Syntax.y"
+#line 446 "src/C_IPL_Syntax.y"
          {
         (yyval.node) = populate_node("ID");
         (yyval.node)->token = (Token*) malloc(sizeof(Token));
         *(yyval.node)->token = (yyvsp[0].token);
     }
-#line 2570 "src/C_IPL_Syntax.tab.c"
+#line 2573 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 60: /* call: ID '(' args ')'  */
-#line 451 "src/C_IPL_Syntax.y"
+#line 454 "src/C_IPL_Syntax.y"
                     {
         (yyval.node) = populate_node("Chamada de Função"); 
         (yyval.node)->token = (Token*) malloc(sizeof(Token));
         *(yyval.node)->token = (yyvsp[-3].token);
         (yyval.node)->child_1 = (yyvsp[-1].node);    
     }
-#line 2581 "src/C_IPL_Syntax.tab.c"
+#line 2584 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 61: /* args: argList  */
-#line 460 "src/C_IPL_Syntax.y"
+#line 463 "src/C_IPL_Syntax.y"
             {
        (yyval.node) = (yyvsp[0].node); 
     }
-#line 2589 "src/C_IPL_Syntax.tab.c"
+#line 2592 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 62: /* args: %empty  */
-#line 463 "src/C_IPL_Syntax.y"
+#line 466 "src/C_IPL_Syntax.y"
       {(yyval.node) = NULL;}
-#line 2595 "src/C_IPL_Syntax.tab.c"
+#line 2598 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 63: /* argList: logExp ',' argList  */
-#line 467 "src/C_IPL_Syntax.y"
+#line 470 "src/C_IPL_Syntax.y"
                        {
         (yyval.node) = populate_node("Lista de Argumentos");
         (yyval.node)->child_1 = (yyvsp[-2].node);
         (yyval.node)->child_2 = (yyvsp[0].node);
     }
-#line 2605 "src/C_IPL_Syntax.tab.c"
+#line 2608 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 64: /* argList: logExp  */
-#line 472 "src/C_IPL_Syntax.y"
+#line 475 "src/C_IPL_Syntax.y"
              {
         (yyval.node) = (yyvsp[0].node);
     }
-#line 2613 "src/C_IPL_Syntax.tab.c"
+#line 2616 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 65: /* constant: INT  */
-#line 478 "src/C_IPL_Syntax.y"
+#line 481 "src/C_IPL_Syntax.y"
         {
         (yyval.node) = populate_node("Int");
         (yyval.node)->token = (Token*) malloc(sizeof(Token));
         *(yyval.node)->token = (yyvsp[0].token);
     }
-#line 2623 "src/C_IPL_Syntax.tab.c"
+#line 2626 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 66: /* constant: FLOAT  */
-#line 483 "src/C_IPL_Syntax.y"
+#line 486 "src/C_IPL_Syntax.y"
             {
         (yyval.node) = populate_node("Float");
         (yyval.node)->token = (Token*) malloc(sizeof(Token));
         *(yyval.node)->token = (yyvsp[0].token);
     }
-#line 2633 "src/C_IPL_Syntax.tab.c"
+#line 2636 "src/C_IPL_Syntax.tab.c"
     break;
 
   case 67: /* constant: NIL  */
-#line 488 "src/C_IPL_Syntax.y"
+#line 491 "src/C_IPL_Syntax.y"
           {
         (yyval.node) = populate_node("NIL");
         (yyval.node)->token = (Token*) malloc(sizeof(Token));
         *(yyval.node)->token = (yyvsp[0].token);
     }
-#line 2643 "src/C_IPL_Syntax.tab.c"
+#line 2646 "src/C_IPL_Syntax.tab.c"
     break;
 
 
-#line 2647 "src/C_IPL_Syntax.tab.c"
+#line 2650 "src/C_IPL_Syntax.tab.c"
 
       default: break;
     }
@@ -2868,7 +2871,7 @@ yyreturn:
   return yyresult;
 }
 
-#line 495 "src/C_IPL_Syntax.y"
+#line 498 "src/C_IPL_Syntax.y"
 
 
 extern void yyerror(const char* e) {
@@ -2885,14 +2888,16 @@ int main(int argc, char *argv[]){
             print_node(abstract_tree, 1);
             print_table_header();
             for (int i = 0; i < position; i++) { 
-                print_symbol(symbol_table[i]);
+                print_symbol(symbol_root);
+                popSymbol(&symbol_root);
             }
             printf("\n");
         } else {
             printf("\nOpa, foram encontrados "RED"%d"REGULAR" erros no arquivo. A árvore abstrata não será mostrada caso haja erros!\n\n", errors);
             print_table_header();
             for (int i = 0; i < position; i++) { 
-                print_symbol(symbol_table[i]);
+                print_symbol(symbol_root);
+                popSymbol(&symbol_root);
             }
             printf("\n");
         }

@@ -21,10 +21,10 @@
     extern int errors;
     extern FILE *yyin;
     Node* abstract_tree;
-    Symbol* symbol_table[1000];
     int position = 0; 
     int scope = 0;
-    StackNode* root = NULL;
+    StackNode* scope_root = NULL;
+    Symbol* symbol_root = NULL;
 %}
 
 %union{
@@ -116,7 +116,8 @@ varDecl:
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $2;
 
-        symbol_table[position] = populate_symbol_table (
+        pushSymbol (
+            &symbol_root,
             $2.line, 
             $2.column, 
             $2.scope,
@@ -141,7 +142,8 @@ funDecl:
         $$->child_2 = $4;
         $$->child_3 = $6;
 
-        symbol_table[position] = populate_symbol_table (
+        pushSymbol (
+            &symbol_root,
             $2.line, 
             $2.column, 
             $2.scope,
@@ -182,7 +184,8 @@ paramTypeList:
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $2;
 
-        symbol_table[position] = populate_symbol_table (
+        pushSymbol (
+            &symbol_root,
             $2.line, 
             $2.column, 
             $2.scope,
@@ -508,14 +511,16 @@ int main(int argc, char *argv[]){
             print_node(abstract_tree, 1);
             print_table_header();
             for (int i = 0; i < position; i++) { 
-                print_symbol(symbol_table[i]);
+                print_symbol(symbol_root);
+                popSymbol(&symbol_root);
             }
             printf("\n");
         } else {
             printf("\nOpa, foram encontrados "RED"%d"REGULAR" erros no arquivo. A árvore abstrata não será mostrada caso haja erros!\n\n", errors);
             print_table_header();
             for (int i = 0; i < position; i++) { 
-                print_symbol(symbol_table[i]);
+                print_symbol(symbol_root);
+                popSymbol(&symbol_root);
             }
             printf("\n");
         }

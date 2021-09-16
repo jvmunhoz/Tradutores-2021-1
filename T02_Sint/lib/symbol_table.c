@@ -30,8 +30,27 @@ extern Symbol* populate_symbol_table (
     strcpy(symbol->ID, ID);
     strcpy(symbol->type, type);
     symbol->is_function = is_function;
+    symbol->next_symbol = NULL;
 
     return symbol;
+}
+
+int is_empty_symbol(Symbol* symbol_root) {
+    return !symbol_root;
+}
+ 
+extern void pushSymbol(Symbol** symbol_root, int line, int column, int scope, char* ID, char* type, int is_function) {
+    Symbol* symbol = populate_symbol_table(line, column, scope, ID, type, is_function);
+
+    symbol->next_symbol = *symbol_root;
+    *symbol_root = symbol;
+}
+ 
+extern void popSymbol(Symbol** symbol_root) {
+    if (is_empty_symbol(*symbol_root)) return;
+
+    *symbol_root = (*symbol_root)->next_symbol;
+    return;
 }
 
 extern void print_table_header() {

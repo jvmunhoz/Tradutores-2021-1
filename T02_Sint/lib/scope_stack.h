@@ -8,14 +8,14 @@ typedef struct StackNode {
 
 extern StackNode* populate_stack(int scope);
 
-extern void push(StackNode** root, int scope);
+extern void push_scope(StackNode** scope_root, int scope);
 
-extern void pop(StackNode** root);
+extern void pop_scope(StackNode** scope_root);
 
-extern int peek(StackNode* root);
+extern int peek_scope(StackNode* scope_root);
 
 extern int scope;
 
-extern StackNode* root;
+extern StackNode* scope_root;
 
 #endif
