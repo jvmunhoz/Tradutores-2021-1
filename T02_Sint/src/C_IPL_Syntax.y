@@ -233,6 +233,7 @@ compoundStmt:
     '{' localDecls '}' {
         $$ = $2;
     }
+    | '{' '}' {$$ = NULL;}
 ;
 
 localDecls:
