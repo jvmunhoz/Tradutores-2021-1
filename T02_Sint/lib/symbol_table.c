@@ -4,7 +4,7 @@
 #include <limits.h>
 #include "abstract_tree.h"
 #include "symbol_table.h"
-#include "../Bison/C_IPL_Syntax.tab.h"
+#include "../src/C_IPL_Syntax.tab.h"
 #define BLUE "\033[1;34:40m"
 #define RED "\033[1;31:40m"
 #define GREEN "\033[1;32:40m"

@@ -4,7 +4,7 @@
 %{
     #include "../lib/abstract_tree.h"
     #include "../lib/symbol_table.h"
-    #include "../Bison/C_IPL_Syntax.tab.h"
+    #include "../src/C_IPL_Syntax.tab.h"
     #include "../lib/scope_stack.h"
     #include <stdio.h>
     #include <stdlib.h>

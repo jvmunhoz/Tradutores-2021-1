@@ -5,7 +5,7 @@
 #include "abstract_tree.h"
 #include "symbol_table.h"
 #include "scope_stack.h"
-#include "../Bison/C_IPL_Syntax.tab.h"
+#include "../src/C_IPL_Syntax.tab.h"
 
 extern StackNode* populate_stack(int scope) {
     int stack_size = sizeof(StackNode);

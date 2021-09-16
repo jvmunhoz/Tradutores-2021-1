@@ -1,11 +1,11 @@
 flex:
-	flex -o Flex/lex.yy.c Flex/C_IPL_Lex-Analyzer.l
+	flex -o src/lex.yy.c src/C_IPL_Lex-Analyzer.l
 
 bison:
-	bison -d -o Bison/C_IPL_Syntax.tab.c Bison/C_IPL_Syntax.y -Wcounterexamples
+	bison -d -o src/C_IPL_Syntax.tab.c src/C_IPL_Syntax.y -Wcounterexamples
 
 compile:
-	gcc -o tradutor Bison/C_IPL_Syntax.tab.c Flex/lex.yy.c lib/*.c -g -Wall -Wextra -Wpedantic
+	gcc -o tradutor src/C_IPL_Syntax.tab.c src/lex.yy.c lib/*.c -g -Wall -Wextra -Wpedantic
 
 run:
 	./tradutor tests/Ex_Correct_0.c
@@ -26,4 +26,4 @@ all:
 	make flex bison compile
 
 clean:
-	rm -f Bison/C_IPL_Syntax.tab.c Bison/C_IPL_Syntax.tab.h Flex/lex.yy.c tradutor
+	rm -f src/C_IPL_Syntax.tab.c src/C_IPL_Syntax.tab.h src/lex.yy.c tradutor

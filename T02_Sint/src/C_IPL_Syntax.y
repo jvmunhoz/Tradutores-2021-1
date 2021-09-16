@@ -243,7 +243,12 @@ localDecls:
         $$->child_1 = $1;
         $$->child_2 = $2;
     }
-    | {$$ = NULL;}
+    | varDecl {
+        $$ = $1;
+    }
+    | stmt {
+        $$ = $1;
+    }
 ;
 
 ifStmt:

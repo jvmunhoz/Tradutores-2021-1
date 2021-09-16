@@ -2,7 +2,7 @@
 #define SYMBOL_TABLE_H
 
 #include "abstract_tree.h"
-#include "../Bison/C_IPL_Syntax.tab.h"
+#include "../src/C_IPL_Syntax.tab.h"
 
 typedef struct Symbol {
         int line;
