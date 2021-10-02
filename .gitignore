@@ -4,6 +4,10 @@ T03_Seman/src/lex.yy.c
 
 T03_Seman/src/C_IPL_Syntax.tab.c
 
+T03_Seman/src/C_IPL_Syntax.tab.h
+
+T03_Seman/tradutor
+
 T03_Seman/tests/helloWorld.c
 
 T03_Seman/tests/toTest.c
