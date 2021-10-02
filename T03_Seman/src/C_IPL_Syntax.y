@@ -350,16 +350,48 @@ writeFunc:
 exp:
     ID ASSIGN exp {
 
+        $$ = populate_node("Atribuição de variável");
+        $$->token = (Token*) malloc(sizeof(Token));
+        *$$->token = $1; 
+        $$->child_1 = $3;
+
+        int return_size = (strlen(get_type(symbol_root, scope_root, $1.content)) + 1) * sizeof(char);
+        $$->return_type = (char*) malloc(sizeof(return_size));
+        strcpy($$->return_type, get_type(symbol_root, scope_root, $1.content));
+
         if (!symbol_exists(symbol_root, scope_root, $1.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variável "RED"%s"REGULAR" não declarada!\n", $1.content);
             errors++;
+        } else if (symbol_int(symbol_root, scope_root, $1.content)) {
+            if (!is_simple_type($3->return_type, $3->return_type)) {
+                printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
+                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" A variável "RED"%s"REGULAR" só pode receber valores do tipo simples!\n", $1.content);
+                errors++;
+            } else if (is_float($3->return_type)) {
+                // casting de float para int
+            }
+        } else if (symbol_float(symbol_root, scope_root, $1.content)) {
+            if (!is_simple_type($3->return_type, $3->return_type)) {
+                printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
+                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" A variável "RED"%s"REGULAR" só pode receber valores do tipo simples!\n", $1.content);
+                errors++;
+            } else if (is_int($3->return_type)) {
+                // casting de int para float
+            }
+        } else if (symbol_int_list(symbol_root, scope_root, $1.content)) {
+            if (!is_int_list($3->return_type) && !is_nil($3->return_type)) {
+                printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
+                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" A variável "RED"%s"REGULAR" só pode receber valores do tipo INT LIST ou NIL!\n", $1.content);
+                errors++;
+            }
+        } else if (symbol_float_list(symbol_root, scope_root, $1.content)) {
+            if (!is_float_list($3->return_type) && !is_nil($3->return_type)) {
+                printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
+                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" A variável "RED"%s"REGULAR" só pode receber valores do tipo FLOAT LIST ou NIL!\n", $1.content);
+                errors++;
+            }
         }
-
-        $$ = populate_node("Atribuição de variável");
-        $$->token = (Token*) malloc(sizeof(Token));
-        *$$->token = $1; 
-        $$->child_1 = $3;  
     }
     | logExp{
         $$ = $1;
@@ -411,14 +443,42 @@ sumExp:
         $$->child_1 = $1;
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $2; 
-        $$->child_2 = $3;  
+        $$->child_2 = $3;
+
+        if (!is_simple_type($1->return_type, $3->return_type)) {
+            printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
+            printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variáveis de uma soma devem ser do tipo INT ou FLOAT!\n");
+            errors++;            
+        } else if (is_same_type($1->return_type, $3->return_type)) {
+            int return_size = (strlen($1->return_type) + 1) * sizeof(char);
+            $$->return_type = (char*) malloc(sizeof(return_size));
+            strcpy($$->return_type, $1->return_type);
+        } else {
+            int return_size = (strlen("float") + 1) * sizeof(char);
+            $$->return_type = (char*) malloc(sizeof(return_size));
+            strcpy($$->return_type, "float");
+        }
     }
     | sumExp MINUS mulExp {
         $$ = populate_node("Operação de Subtração");
         $$->child_1 = $1;
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $2; 
-        $$->child_2 = $3;  
+        $$->child_2 = $3;
+
+        if (!is_simple_type($1->return_type, $3->return_type)) {
+            printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
+            printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variáveis de uma subtração devem ser do tipo INT ou FLOAT!\n");
+            errors++;            
+        } else if (is_same_type($1->return_type, $3->return_type)) {
+            int return_size = (strlen($1->return_type) + 1) * sizeof(char);
+            $$->return_type = (char*) malloc(sizeof(return_size));
+            strcpy($$->return_type, $1->return_type);
+        } else {
+            int return_size = (strlen("float") + 1) * sizeof(char);
+            $$->return_type = (char*) malloc(sizeof(return_size));
+            strcpy($$->return_type, "float");
+        }  
     }
     | mulExp {
        $$ = $1; 
@@ -431,7 +491,21 @@ mulExp:
         $$->child_1 = $1;
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $2; 
-        $$->child_2 = $3;  
+        $$->child_2 = $3;
+
+        if (!is_simple_type($1->return_type, $3->return_type)) {
+            printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
+            printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variáveis de uma multiplicação ou divisão devem ser do tipo INT ou FLOAT!\n");
+            errors++;            
+        } else if (is_same_type($1->return_type, $3->return_type)) {
+            int return_size = (strlen($1->return_type) + 1) * sizeof(char);
+            $$->return_type = (char*) malloc(sizeof(return_size));
+            strcpy($$->return_type, $1->return_type);
+        } else {
+            int return_size = (strlen("float") + 1) * sizeof(char);
+            $$->return_type = (char*) malloc(sizeof(return_size));
+            strcpy($$->return_type, "float");
+        } 
     }
     | unaryListExp {
         $$ = $1;
@@ -495,6 +569,10 @@ factor:
         $$ = populate_node("ID");
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $1;
+
+        int return_size = (strlen(get_type(symbol_root, scope_root, $1.content)) + 1) * sizeof(char);
+        $$->return_type = (char*) malloc(sizeof(return_size));
+        strcpy($$->return_type, get_type(symbol_root, scope_root, $1.content));
     }
 ;
 
@@ -537,16 +615,28 @@ constant:
         $$ = populate_node("Int");
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $1;
+
+        int return_size = (strlen("int") + 1) * sizeof(char);
+        $$->return_type = (char*) malloc(sizeof(return_size));
+        strcpy($$->return_type, "int");  
     }
     | FLOAT {
         $$ = populate_node("Float");
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $1;
+
+        int return_size = (strlen("float") + 1) * sizeof(char);
+        $$->return_type = (char*) malloc(sizeof(return_size));
+        strcpy($$->return_type, "float");
     }
     | NIL {
         $$ = populate_node("NIL");
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $1;
+
+        int return_size = (strlen("NIL") + 1) * sizeof(char);
+        $$->return_type = (char*) malloc(sizeof(return_size));
+        strcpy($$->return_type, "NIL");
     }
 ;
 

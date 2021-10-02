@@ -25,7 +25,60 @@ extern Node* populate_node (char* identifier) {
     node->child_4 = NULL;
     node->token = NULL;
 
+    int return_size = (strlen("") + 1) * sizeof(char);
+    node->return_type = (char*) malloc(sizeof(return_size));
+    strcpy(node->return_type, "");
+
     return node;
+}
+
+extern int is_same_type (char* type1, char* type2) {
+    if (strcmp(type1, type2) == 0) {
+        return 1;
+    }
+    return 0;
+}
+
+extern int is_simple_type (char* type1, char* type2) {
+    if ( ( (strcmp(type1, "int") != 0) && (strcmp(type1, "float") != 0) ) || ( (strcmp(type2, "int") != 0) && (strcmp(type2, "float") != 0) ) ) {
+        return 0;
+    }
+    return 1;
+}
+
+extern int is_int (char* type) {
+    if ( strcmp(type, "int") == 0 ) {
+        return 1;
+    }
+    return 0;
+}
+
+extern int is_float (char* type) {
+    if ( strcmp(type, "float") == 0 ) {
+        return 1;
+    }
+    return 0;
+}
+
+extern int is_int_list (char* type) {
+    if ( strcmp(type, "int list") == 0 ) {
+        return 1;
+    }
+    return 0;
+}
+
+extern int is_float_list (char* type) {
+    if ( strcmp(type, "float list") == 0 ) {
+        return 1;
+    }
+    return 0;
+}
+
+extern int is_nil (char* type) {
+    if ( strcmp(type, "NIL") == 0 ) {
+        return 1;
+    }
+    return 0;
 }
 
 extern void print_node(Node* tree_node, int nivel) {

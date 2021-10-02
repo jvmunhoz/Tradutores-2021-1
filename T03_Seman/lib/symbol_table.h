@@ -25,6 +25,14 @@ extern int is_repeated(Symbol* symbol_root, int current_scope, char* name);
 
 extern char* get_type(Symbol* symbol_root, StackNode* scope_root, char* name);
 
+extern int symbol_int(Symbol* symbol_root, StackNode* scope_root, char* name);
+
+extern int symbol_float(Symbol* symbol_root, StackNode* scope_root, char* name);
+
+extern int symbol_int_list(Symbol* symbol_root, StackNode* scope_root, char* name);
+
+extern int symbol_float_list(Symbol* symbol_root, StackNode* scope_root, char* name);
+
 extern void print_symbol(Symbol* symbol);
 
 extern void print_table_header();

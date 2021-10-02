@@ -99,6 +99,7 @@ extern int is_repeated(Symbol* symbol_root, int current_scope, char* name) {
 }
 
 extern char* get_type(Symbol* symbol_root, StackNode* scope_root, char* name) {
+    if (is_empty_symbol(symbol_root)) return "error";
     
     if (symbol_root->scope > peek_scope(scope_root)) {
         return get_type(symbol_root->next_symbol, scope_root, name);
@@ -115,6 +116,86 @@ extern char* get_type(Symbol* symbol_root, StackNode* scope_root, char* name) {
     }
 
     return symbol_root->type;
+}
+
+extern int symbol_int(Symbol* symbol_root, StackNode* scope_root, char* name) {
+    if (is_empty_symbol(symbol_root)) return 0;
+    
+    if (symbol_root->scope > peek_scope(scope_root)) {
+        return symbol_int(symbol_root->next_symbol, scope_root, name);
+    } else if (symbol_root->scope < peek_scope(scope_root)) {
+        return symbol_int(symbol_root, scope_root->next_scope, name);
+    }
+
+    if (strcmp(symbol_root->ID, name) != 0) {
+        return symbol_int(symbol_root->next_symbol, scope_root, name);
+    }
+
+    if ((strcmp(symbol_root->ID, name) == 0) && (strcmp(get_type(symbol_root, scope_root, name), "int") == 0)) {       
+        return 1;
+    }
+
+    return 0;
+}
+
+extern int symbol_float(Symbol* symbol_root, StackNode* scope_root, char* name) {
+    if (is_empty_symbol(symbol_root)) return 0;
+    
+    if (symbol_root->scope > peek_scope(scope_root)) {
+        return symbol_float(symbol_root->next_symbol, scope_root, name);
+    } else if (symbol_root->scope < peek_scope(scope_root)) {
+        return symbol_float(symbol_root, scope_root->next_scope, name);
+    }
+
+    if (strcmp(symbol_root->ID, name) != 0) {
+        return symbol_float(symbol_root->next_symbol, scope_root, name);
+    }
+
+    if ((strcmp(symbol_root->ID, name) == 0) && (strcmp(get_type(symbol_root, scope_root, name), "float") == 0)) {       
+        return 1;
+    }
+
+    return 0;
+}
+
+extern int symbol_int_list(Symbol* symbol_root, StackNode* scope_root, char* name) {
+    if (is_empty_symbol(symbol_root)) return 0;
+    
+    if (symbol_root->scope > peek_scope(scope_root)) {
+        return symbol_int_list(symbol_root->next_symbol, scope_root, name);
+    } else if (symbol_root->scope < peek_scope(scope_root)) {
+        return symbol_int_list(symbol_root, scope_root->next_scope, name);
+    }
+
+    if (strcmp(symbol_root->ID, name) != 0) {
+        return symbol_int_list(symbol_root->next_symbol, scope_root, name);
+    }
+
+    if ((strcmp(symbol_root->ID, name) == 0) && (strcmp(get_type(symbol_root, scope_root, name), "int list") == 0)) {       
+        return 1;
+    }
+
+    return 0;
+}
+
+extern int symbol_float_list(Symbol* symbol_root, StackNode* scope_root, char* name) {
+    if (is_empty_symbol(symbol_root)) return 0;
+    
+    if (symbol_root->scope > peek_scope(scope_root)) {
+        return symbol_float_list(symbol_root->next_symbol, scope_root, name);
+    } else if (symbol_root->scope < peek_scope(scope_root)) {
+        return symbol_float_list(symbol_root, scope_root->next_scope, name);
+    }
+
+    if (strcmp(symbol_root->ID, name) != 0) {
+        return symbol_float_list(symbol_root->next_symbol, scope_root, name);
+    }
+
+    if ((strcmp(symbol_root->ID, name) == 0) && (strcmp(get_type(symbol_root, scope_root, name), "float list") == 0)) {       
+        return 1;
+    }
+
+    return 0;
 }
 
 extern void print_table_header() {

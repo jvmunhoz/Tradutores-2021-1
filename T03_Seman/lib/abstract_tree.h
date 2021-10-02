@@ -15,9 +15,17 @@ typedef struct Node {
     struct Node*  child_3;
     struct Node*  child_4;
     Token* token;
+    char*  return_type;
 } Node;
 
 extern Node* populate_node (char* identifier);
+extern int is_same_type (char* type1, char* type2);
+extern int is_simple_type (char* type1, char* type2);
+extern int is_int (char* type);
+extern int is_float (char* type);
+extern int is_int_list (char* type);
+extern int is_float_list (char* type);
+extern int is_nil (char* type);
 extern void print_node(Node* tree_node, int nivel);
 
 #endif
