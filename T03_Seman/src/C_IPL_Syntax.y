@@ -107,6 +107,13 @@ decl:
 
 varDecl:
     TYPE ID ';' {
+
+        if (is_repeated(symbol_root, $2.scope, $2.content, 0)) {
+            printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $2.line, $2.column);
+            printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variável "RED"%s"REGULAR" declarada mais de uma vez!\n", $2.content);
+            errors++;
+        }
+
         Node* type_node = populate_node("Tipo da variável");
         type_node->token = (Token*) malloc(sizeof(Token));
         *type_node->token = $1;
@@ -131,6 +138,14 @@ varDecl:
 
 funDecl:
     TYPE ID '(' params ')' compoundStmt {
+
+        if (is_repeated(symbol_root, $2.scope, $2.content, 1)) {
+            
+            printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $2.line, $2.column);
+            printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Função "RED"%s"REGULAR" declarada mais de uma vez!\n", $2.content);
+            errors++;
+        }
+
         Node* type_node = populate_node("Tipo da Função");
         type_node->token = (Token*) malloc(sizeof(Token));
         *type_node->token = $1;
@@ -175,6 +190,13 @@ paramList:
 
 paramTypeList:
     TYPE ID {
+
+        if (is_repeated(symbol_root, $2.scope, $2.content, 0)) {
+            printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $2.line, $2.column);
+            printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Parâmetro "RED"%s"REGULAR" declarado mais de uma vez!\n", $2.content);
+            errors++;
+        }
+
         Node* type_node = populate_node("Tipo da Função");
         type_node->token = (Token*) malloc(sizeof(Token));
         *type_node->token = $1;
@@ -288,6 +310,13 @@ returnStmt:
 
 readFunc:
     READ '(' ID ')' {
+
+        if (!symbol_exists(symbol_root, scope_root, $3.content, 0)) {
+            printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $3.line, $3.column);
+            printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variável "RED"%s"REGULAR" não declarada!\n", $3.content);
+            errors++;
+        }
+
         $$ = populate_node("Leitura");
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $3; 
@@ -316,6 +345,13 @@ writeFunc:
 
 exp:
     ID ASSIGN exp {
+
+        if (!symbol_exists(symbol_root, scope_root, $1.content, 0)) {
+            printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
+            printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variável "RED"%s"REGULAR" não declarada!\n", $1.content);
+            errors++;
+        }
+
         $$ = populate_node("Atribuição de variável");
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $1; 
@@ -445,6 +481,13 @@ factor:
        $$ = $1; 
     }
     | ID {
+
+        if (!symbol_exists(symbol_root, scope_root, $1.content, 0)) {
+            printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
+            printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variável "RED"%s"REGULAR" não declarada!\n", $1.content);
+            errors++;
+        }
+
         $$ = populate_node("ID");
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $1;
@@ -453,6 +496,13 @@ factor:
 
 call:
     ID '(' args ')' {
+
+        if (!symbol_exists(symbol_root, scope_root, $1.content, 1)) {
+            printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
+            printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Função "RED"%s"REGULAR" não declarada!\n", $1.content);
+            errors++;
+        }
+
         $$ = populate_node("Chamada de Função"); 
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $1;
@@ -499,7 +549,8 @@ constant:
 %%
 
 extern void yyerror(const char* e) {
-    printf(RED"[Linha: %d - Coluna: %d] %s\n"REGULAR, prev_line, prev_column, e);
+    printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", prev_line, prev_column);
+    printf(""RED"ERRO SINTÁTICO ---> "REGULAR"%s\n", e);
     errors++;
 }  
 

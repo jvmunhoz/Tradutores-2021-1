@@ -4,6 +4,7 @@
 #include <limits.h>
 #include "abstract_tree.h"
 #include "symbol_table.h"
+#include "scope_stack.h"
 #include "../src/C_IPL_Syntax.tab.h"
 #define BLUE "\033[1;34:40m"
 #define RED "\033[1;31:40m"
@@ -23,7 +24,7 @@ extern Symbol* populate_symbol_table (
     Symbol* symbol = (Symbol*) malloc(symbol_size);
     symbol->ID = (char*) malloc(str_size);
     symbol->type = (char*) malloc(str_size_2);
-     
+    
     symbol->line = line;
     symbol->column = column;
     symbol->scope = scope;
@@ -57,6 +58,44 @@ extern void popSymbol(Symbol** symbol_root) {
     free(symbol_root2->type);
     free(symbol_root2);
     return;
+}
+
+extern int symbol_exists(Symbol* symbol_root, StackNode* scope_root, char* name, int is_function) {
+    if (is_empty_symbol(symbol_root)) return 0;
+
+    if (symbol_root->scope > peek_scope(scope_root)) {
+        return symbol_exists(symbol_root->next_symbol, scope_root, name, is_function);
+    } else if (symbol_root->scope < peek_scope(scope_root)) {
+        return symbol_exists(symbol_root, scope_root->next_scope, name, is_function);
+    }
+
+    if (strcmp(symbol_root->ID, name) != 0) {
+        return symbol_exists(symbol_root->next_symbol, scope_root, name, is_function);
+    }
+
+    if (strcmp(symbol_root->ID, name) == 0) {
+        return 1;
+    }
+
+    return 0;
+}
+
+extern int is_repeated(Symbol* symbol_root, int current_scope, char* name, int is_function) {
+    if (is_empty_symbol(symbol_root)) return 0;
+
+    if (symbol_root->scope != current_scope) {
+        return is_repeated(symbol_root->next_symbol, current_scope, name, is_function);
+    }
+
+    if (strcmp(symbol_root->ID, name) != 0) {
+        return is_repeated(symbol_root->next_symbol, current_scope, name, is_function);
+    }
+
+    if ((strcmp(symbol_root->ID, name) == 0)) {
+        return 1;
+    }
+
+    return 0;
 }
 
 extern void print_table_header() {

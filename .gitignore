@@ -1,7 +1,5 @@
 .vscode
 
-T02_Sint/Bison/C_IPL_Syntax.tab.*
+T03_Seman/tests/helloWorld.c
 
-T02_Sint/Flex/lex.yy.c
-
-T02_Sint/tradutor
+T03_Seman/tests/toTest.c
