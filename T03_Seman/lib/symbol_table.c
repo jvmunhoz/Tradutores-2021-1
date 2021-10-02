@@ -60,17 +60,17 @@ extern void popSymbol(Symbol** symbol_root) {
     return;
 }
 
-extern int symbol_exists(Symbol* symbol_root, StackNode* scope_root, char* name, int is_function) {
+extern int symbol_exists(Symbol* symbol_root, StackNode* scope_root, char* name) {
     if (is_empty_symbol(symbol_root)) return 0;
 
     if (symbol_root->scope > peek_scope(scope_root)) {
-        return symbol_exists(symbol_root->next_symbol, scope_root, name, is_function);
+        return symbol_exists(symbol_root->next_symbol, scope_root, name);
     } else if (symbol_root->scope < peek_scope(scope_root)) {
-        return symbol_exists(symbol_root, scope_root->next_scope, name, is_function);
+        return symbol_exists(symbol_root, scope_root->next_scope, name);
     }
 
     if (strcmp(symbol_root->ID, name) != 0) {
-        return symbol_exists(symbol_root->next_symbol, scope_root, name, is_function);
+        return symbol_exists(symbol_root->next_symbol, scope_root, name);
     }
 
     if (strcmp(symbol_root->ID, name) == 0) {
@@ -80,15 +80,15 @@ extern int symbol_exists(Symbol* symbol_root, StackNode* scope_root, char* name,
     return 0;
 }
 
-extern int is_repeated(Symbol* symbol_root, int current_scope, char* name, int is_function) {
+extern int is_repeated(Symbol* symbol_root, int current_scope, char* name) {
     if (is_empty_symbol(symbol_root)) return 0;
 
     if (symbol_root->scope != current_scope) {
-        return is_repeated(symbol_root->next_symbol, current_scope, name, is_function);
+        return is_repeated(symbol_root->next_symbol, current_scope, name);
     }
 
     if (strcmp(symbol_root->ID, name) != 0) {
-        return is_repeated(symbol_root->next_symbol, current_scope, name, is_function);
+        return is_repeated(symbol_root->next_symbol, current_scope, name);
     }
 
     if ((strcmp(symbol_root->ID, name) == 0)) {
@@ -96,6 +96,25 @@ extern int is_repeated(Symbol* symbol_root, int current_scope, char* name, int i
     }
 
     return 0;
+}
+
+extern char* get_type(Symbol* symbol_root, StackNode* scope_root, char* name) {
+    
+    if (symbol_root->scope > peek_scope(scope_root)) {
+        return get_type(symbol_root->next_symbol, scope_root, name);
+    } else if (symbol_root->scope < peek_scope(scope_root)) {
+        return get_type(symbol_root, scope_root->next_scope, name);
+    }
+
+    if (strcmp(symbol_root->ID, name) != 0) {
+        return get_type(symbol_root->next_symbol, scope_root, name);
+    }
+
+    if (strcmp(symbol_root->ID, name) == 0) {
+        return symbol_root->type;
+    }
+
+    return symbol_root->type;
 }
 
 extern void print_table_header() {

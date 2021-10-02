@@ -108,7 +108,7 @@ decl:
 varDecl:
     TYPE ID ';' {
 
-        if (is_repeated(symbol_root, $2.scope, $2.content, 0)) {
+        if (is_repeated(symbol_root, $2.scope, $2.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $2.line, $2.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variável "RED"%s"REGULAR" declarada mais de uma vez!\n", $2.content);
             errors++;
@@ -139,7 +139,7 @@ varDecl:
 funDecl:
     TYPE ID '(' params ')' compoundStmt {
 
-        if (is_repeated(symbol_root, $2.scope, $2.content, 1)) {
+        if (is_repeated(symbol_root, $2.scope, $2.content)) {
             
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $2.line, $2.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Função "RED"%s"REGULAR" declarada mais de uma vez!\n", $2.content);
@@ -191,7 +191,7 @@ paramList:
 paramTypeList:
     TYPE ID {
 
-        if (is_repeated(symbol_root, $2.scope, $2.content, 0)) {
+        if (is_repeated(symbol_root, $2.scope, $2.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $2.line, $2.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Parâmetro "RED"%s"REGULAR" declarado mais de uma vez!\n", $2.content);
             errors++;
@@ -311,9 +311,13 @@ returnStmt:
 readFunc:
     READ '(' ID ')' {
 
-        if (!symbol_exists(symbol_root, scope_root, $3.content, 0)) {
+        if (!symbol_exists(symbol_root, scope_root, $3.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $3.line, $3.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variável "RED"%s"REGULAR" não declarada!\n", $3.content);
+            errors++;
+        } else if ((strcmp(get_type(symbol_root, scope_root, $3.content), "int") != 0) && (strcmp(get_type(symbol_root, scope_root, $3.content), "float") != 0)) {
+            printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $3.line, $3.column);
+            printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variável "RED"%s"REGULAR" deve ser do tipo int ou float!\n", $3.content);
             errors++;
         }
 
@@ -346,7 +350,7 @@ writeFunc:
 exp:
     ID ASSIGN exp {
 
-        if (!symbol_exists(symbol_root, scope_root, $1.content, 0)) {
+        if (!symbol_exists(symbol_root, scope_root, $1.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variável "RED"%s"REGULAR" não declarada!\n", $1.content);
             errors++;
@@ -482,7 +486,7 @@ factor:
     }
     | ID {
 
-        if (!symbol_exists(symbol_root, scope_root, $1.content, 0)) {
+        if (!symbol_exists(symbol_root, scope_root, $1.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variável "RED"%s"REGULAR" não declarada!\n", $1.content);
             errors++;
@@ -497,7 +501,7 @@ factor:
 call:
     ID '(' args ')' {
 
-        if (!symbol_exists(symbol_root, scope_root, $1.content, 1)) {
+        if (!symbol_exists(symbol_root, scope_root, $1.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Função "RED"%s"REGULAR" não declarada!\n", $1.content);
             errors++;
