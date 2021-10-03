@@ -453,10 +453,18 @@ sumExp:
             int return_size = (strlen($1->return_type) + 1) * sizeof(char);
             $$->return_type = (char*) malloc(sizeof(return_size));
             strcpy($$->return_type, $1->return_type);
-        } else {
+        } else if (is_float($1->return_type)) {
             int return_size = (strlen("float") + 1) * sizeof(char);
             $$->return_type = (char*) malloc(sizeof(return_size));
             strcpy($$->return_type, "float");
+
+            //casting de int pra float em $3
+        } else if (is_float($3->return_type)) {
+            int return_size = (strlen("float") + 1) * sizeof(char);
+            $$->return_type = (char*) malloc(sizeof(return_size));
+            strcpy($$->return_type, "float");
+
+            //casting de int pra float em $1
         }
     }
     | sumExp MINUS mulExp {
@@ -474,11 +482,19 @@ sumExp:
             int return_size = (strlen($1->return_type) + 1) * sizeof(char);
             $$->return_type = (char*) malloc(sizeof(return_size));
             strcpy($$->return_type, $1->return_type);
-        } else {
+        } else if (is_float($1->return_type)) {
             int return_size = (strlen("float") + 1) * sizeof(char);
             $$->return_type = (char*) malloc(sizeof(return_size));
             strcpy($$->return_type, "float");
-        }  
+
+            //casting de int pra float em $3
+        } else if (is_float($3->return_type)) {
+            int return_size = (strlen("float") + 1) * sizeof(char);
+            $$->return_type = (char*) malloc(sizeof(return_size));
+            strcpy($$->return_type, "float");
+
+            //casting de int pra float em $1
+        } 
     }
     | mulExp {
        $$ = $1; 
@@ -501,11 +517,19 @@ mulExp:
             int return_size = (strlen($1->return_type) + 1) * sizeof(char);
             $$->return_type = (char*) malloc(sizeof(return_size));
             strcpy($$->return_type, $1->return_type);
-        } else {
+        } else if (is_float($1->return_type)) {
             int return_size = (strlen("float") + 1) * sizeof(char);
             $$->return_type = (char*) malloc(sizeof(return_size));
             strcpy($$->return_type, "float");
-        } 
+
+            //casting de int pra float em $3
+        } else if (is_float($3->return_type)) {
+            int return_size = (strlen("float") + 1) * sizeof(char);
+            $$->return_type = (char*) malloc(sizeof(return_size));
+            strcpy($$->return_type, "float");
+
+            //casting de int pra float em $1
+        }
     }
     | unaryListExp {
         $$ = $1;
