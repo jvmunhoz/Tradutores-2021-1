@@ -62,12 +62,12 @@
 %type <node> writeFunc
 %type <node> exp
 %type <node> logExp
+%type <node> unaryLogExp
 %type <node> listExp
 %type <node> relExp
 %type <node> sumExp
 %type <node> mulExp
 %type <node> unaryListExp
-%type <node> unaryListOp
 %type <node> unaryExp
 %type <node> factor
 %type <node> call
@@ -399,12 +399,55 @@ exp:
 ;
 
 logExp:
-    logExp LOGOP listExp {
+    logExp LOGOP unaryLogExp {
         $$ = populate_node("Operação Lógica");
         $$->child_1 = $1;
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $2; 
         $$->child_2 = $3;  
+
+        int return_size = (strlen("int") + 1) * sizeof(char);
+        $$->return_type = (char*) malloc(sizeof(return_size));
+        strcpy($$->return_type, "int");
+    }
+    | unaryLogExp{
+        $$ = $1;
+    }
+;
+
+unaryLogExp:
+    EXCLAM listExp {
+
+        if (is_int_list($2->return_type) || is_float_list($2->return_type) || is_nil($2->return_type)) {
+            $$ = populate_node("Operação Unária de Lista");
+            $$->token = (Token*) malloc(sizeof(Token));
+            *$$->token = $1;
+            $$->child_1 = $2;
+
+            if (is_int_list($2->return_type)) {
+                int return_size = (strlen("int list") + 1) * sizeof(char);
+                $$->return_type = (char*) malloc(sizeof(return_size));
+                strcpy($$->return_type, "int list");
+            } else if (is_float_list($2->return_type)){
+                int return_size = (strlen("float list") + 1) * sizeof(char);
+                $$->return_type = (char*) malloc(sizeof(return_size));
+                strcpy($$->return_type, "float list");
+            } else if (is_nil($2->return_type)){
+                int return_size = (strlen("undefined") + 1) * sizeof(char);
+                $$->return_type = (char*) malloc(sizeof(return_size));
+                strcpy($$->return_type, "undefined");
+            } 
+
+        } else {
+            $$ = populate_node("Operação Lógica Unária");
+            $$->token = (Token*) malloc(sizeof(Token));
+            *$$->token = $1; 
+            $$->child_1 = $2;
+
+            int return_size = (strlen("int") + 1) * sizeof(char);
+            $$->return_type = (char*) malloc(sizeof(return_size));
+            strcpy($$->return_type, "int");
+        }  
     }
     | listExp{
         $$ = $1;
@@ -564,26 +607,40 @@ mulExp:
 ;
 
 unaryListExp:
-    unaryListOp unaryExp {
+    UN_LISTOP unaryExp {
         $$ = populate_node("Operação Unária de Lista");
-        $$->child_1 = $1;
-        $$->child_2 = $2;   
+        $$->token = (Token*) malloc(sizeof(Token));
+        *$$->token = $1; 
+        $$->child_1 = $2;
+
+        if (is_simple_type($2->return_type, $2->return_type)) {
+            printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
+            printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operando %s deve ser do tipo INT LIST ou FLOAT LIST!\n", $1.content);
+            errors++;            
+        } else if ((strcmp($1.content, "?") == 0)) {
+            if (is_int_list($2->return_type)) {
+                int return_size = (strlen("int") + 1) * sizeof(char);
+                $$->return_type = (char*) malloc(sizeof(return_size));
+                strcpy($$->return_type, "int");
+            } else {
+                int return_size = (strlen("float") + 1) * sizeof(char);
+                $$->return_type = (char*) malloc(sizeof(return_size));
+                strcpy($$->return_type, "float");
+            }
+        } else if (strcmp($1.content, "%") == 0) {
+            if (is_int_list($2->return_type)) {
+                int return_size = (strlen("int list") + 1) * sizeof(char);
+                $$->return_type = (char*) malloc(sizeof(return_size));
+                strcpy($$->return_type, "int list");
+            } else {
+                int return_size = (strlen("float list") + 1) * sizeof(char);
+                $$->return_type = (char*) malloc(sizeof(return_size));
+                strcpy($$->return_type, "float list");
+            }
+        }
     }
     | unaryExp {
         $$ = $1;
-    }
-;
-
-unaryListOp:
-    UN_LISTOP {    
-        $$ = populate_node("Operador Unário de Lista");
-        $$->token = (Token*) malloc(sizeof(Token));
-        *$$->token = $1;    
-    }
-    | EXCLAM {
-        $$ = populate_node("Ponto de Exclamação");
-        $$->token = (Token*) malloc(sizeof(Token));
-        *$$->token = $1;
     }
 ;
 
