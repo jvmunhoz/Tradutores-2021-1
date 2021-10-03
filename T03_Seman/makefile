@@ -7,6 +7,9 @@ bison:
 compile:
 	gcc -o tradutor src/C_IPL_Syntax.tab.c src/lex.yy.c lib/*.c -g -Wall -Wextra -Wpedantic
 
+test:
+	./tradutor tests/test.c
+
 run:
 	./tradutor tests/Ex_Correct_0.c
 

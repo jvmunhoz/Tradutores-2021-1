@@ -430,7 +430,34 @@ relExp:
         $$->child_1 = $1;
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $2; 
-        $$->child_2 = $3;  
+        $$->child_2 = $3;
+        
+        int return_size = (strlen("int") + 1) * sizeof(char);
+        $$->return_type = (char*) malloc(sizeof(return_size));
+        strcpy($$->return_type, "int");  
+
+        if (is_simple_type($1->return_type, $3->return_type)) {            
+            if (!is_same_type($1->return_type, $3->return_type) && is_float($1->return_type)) {
+                // casting de int->float em $3
+            } else if (!is_same_type($1->return_type, $3->return_type) && is_float($1->return_type)) {
+                // casting de int->float em $1
+            }         
+        } else if ( (strcmp($2.content, "==") == 0) || (strcmp($2.content, "!=") == 0) ) {
+            if ( !( ( is_nil($1->return_type) && is_int_list($3->return_type) ) || 
+                    ( is_nil($1->return_type) && is_float_list($3->return_type) ) ||
+                    ( is_int_list($1->return_type) && is_nil($3->return_type) ) ||
+                    ( is_float_list($1->return_type) && is_nil($3->return_type) ) ||
+                    ( is_nil($1->return_type) && is_nil($3->return_type) ) ) 
+                ) {
+                printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
+                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Não é possível realizar uma operação de "RED"%s"REGULAR" entre um "RED"%s"REGULAR" e um "RED"%s"REGULAR"! \n", $2.content, $1->return_type, $3->return_type);
+                errors++;
+                }
+        } else {
+                printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
+                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Não é possível realizar uma operação de "RED"%s"REGULAR" entre um "RED"%s"REGULAR" e um "RED"%s"REGULAR"! \n", $2.content, $1->return_type, $3->return_type);
+                errors++; 
+        }
     }
     | sumExp {
         $$ = $1;
