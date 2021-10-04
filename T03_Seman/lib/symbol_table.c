@@ -15,7 +15,7 @@
 #define REGULAR "\033[0m"
 
 extern Symbol* populate_symbol_table (
-    int line, int column, int scope, char* ID, char* type, int is_function
+    int line, int column, int scope, char* ID, char* type, int is_function, int param_qt
     ) {
     int symbol_size = (sizeof(Symbol));
     int str_size = (strlen(ID) + 1) * sizeof(char);
@@ -31,6 +31,7 @@ extern Symbol* populate_symbol_table (
     strcpy(symbol->ID, ID);
     strcpy(symbol->type, type);
     symbol->is_function = is_function;
+    symbol->param_qt = param_qt;
     symbol->next_symbol = NULL;
 
     return symbol;
@@ -40,8 +41,8 @@ int is_empty_symbol(Symbol* symbol_root) {
     return !symbol_root;
 }
  
-extern void pushSymbol(Symbol** symbol_root, int line, int column, int scope, char* ID, char* type, int is_function) {
-    Symbol* symbol = populate_symbol_table(line, column, scope, ID, type, is_function);
+extern void pushSymbol(Symbol** symbol_root, int line, int column, int scope, char* ID, char* type, int is_function, int param_qt) {
+    Symbol* symbol = populate_symbol_table(line, column, scope, ID, type, is_function, param_qt);
 
     symbol->next_symbol = *symbol_root;
     *symbol_root = symbol;
@@ -116,6 +117,37 @@ extern char* get_type(Symbol* symbol_root, StackNode* scope_root, char* name) {
     }
 
     return symbol_root->type;
+}
+
+extern Symbol* get_function(Symbol* symbol_root, char* name) {
+    if (symbol_root->scope != 0) {
+        return get_function(symbol_root->next_symbol, name);
+    } else if (strcmp(symbol_root->ID, name) != 0) {
+        return get_function(symbol_root->next_symbol, name);
+    } else if (strcmp(symbol_root->ID, name) == 0) {
+        return symbol_root;
+    }
+
+    return symbol_root;
+}
+
+extern int param_location(Symbol* symbol_root, int return_value) {
+    if (is_empty_symbol(symbol_root->next_symbol)) return return_value;
+
+    if (symbol_root->next_symbol->scope != 0) {
+        return param_location(symbol_root->next_symbol, (return_value+1));
+    }
+
+    return return_value;
+}
+
+extern Symbol* get_param(Symbol* symbol_root, int param_location) {
+
+    if (param_location != 0) {
+        return get_param(symbol_root->next_symbol, (param_location-1));
+    }
+
+    return symbol_root;
 }
 
 extern int symbol_int(Symbol* symbol_root, StackNode* scope_root, char* name) {

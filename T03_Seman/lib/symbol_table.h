@@ -12,10 +12,11 @@ typedef struct Symbol {
         char* ID;
         char* type;
         int is_function;
+        int param_qt;
         struct Symbol* next_symbol;
 } Symbol;
 
-extern void pushSymbol(Symbol** symbol_root, int line, int column, int scope, char* ID, char* type, int is_function);
+extern void pushSymbol(Symbol** symbol_root, int line, int column, int scope, char* ID, char* type, int is_function, int param_qt);
 
 extern void popSymbol(Symbol** symbol_root);
 
@@ -24,6 +25,12 @@ extern int symbol_exists(Symbol* symbol_root, StackNode* scope_root, char* name)
 extern int is_repeated(Symbol* symbol_root, int current_scope, char* name);
 
 extern char* get_type(Symbol* symbol_root, StackNode* scope_root, char* name);
+
+extern Symbol* get_function(Symbol* symbol_root, char* name);
+
+extern int param_location(Symbol* symbol_root, int return_value);
+
+extern Symbol* get_param(Symbol* symbol_root, int param_location);
 
 extern int symbol_int(Symbol* symbol_root, StackNode* scope_root, char* name);
 

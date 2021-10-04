@@ -25,6 +25,9 @@
     int scope = 0;
     StackNode* scope_root = NULL;
     Symbol* symbol_root = NULL;
+    int param_qt = 0;
+    int param_call = 0;
+    char* param_type[10];
 %}
 
 %union{
@@ -130,7 +133,8 @@ varDecl:
             $2.scope,
             $2.content,
             type_node->token->content,
-            0     
+            0,
+            0   
         );
         position++;
     }
@@ -140,7 +144,6 @@ funDecl:
     TYPE ID '(' params ')' compoundStmt {
 
         if (is_repeated(symbol_root, $2.scope, $2.content)) {
-            
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $2.line, $2.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Função "RED"%s"REGULAR" declarada mais de uma vez!\n", $2.content);
             errors++;
@@ -164,9 +167,11 @@ funDecl:
             $2.scope,
             $2.content,
             type_node->token->content,
-            1     
+            1,
+            param_qt 
         );
-        position++; 
+        position++;
+        param_qt = 0;
     }
 ;
 
@@ -213,9 +218,11 @@ paramTypeList:
             $2.scope,
             $2.content,
             type_node->token->content,
-            0     
+            2,
+            0   
         );
         position++;
+        param_qt++;
     }
 ;
 
@@ -460,7 +467,81 @@ listExp:
         $$->child_1 = $1;
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $2; 
-        $$->child_2 = $3;  
+        $$->child_2 = $3;
+
+        if ((strcmp($2.content, ":") == 0)) {
+            if (!is_simple_type($1->return_type, $1->return_type)) {
+                printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
+                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" A variável "RED"%s"REGULAR" deve ser dos tipos INT ou FLOAT!\n", $1->token->content);
+                errors++;
+            } else if (is_simple_type($3->return_type, $3->return_type)) {
+                printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
+                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" A variável "RED"%s"REGULAR" deve ser dos tipos INT LIST ou FLOAT LIST!\n", $3->token->content);
+                errors++;
+            } else if (is_int_list($3->return_type)) {
+                if (is_float($1->return_type)) {
+                    // casting de float para int em $1    
+                }
+                int return_size = (strlen("int list") + 1) * sizeof(char);
+                $$->return_type = (char*) malloc(sizeof(return_size));
+                strcpy($$->return_type, "int list");
+            } else if (is_float_list($3->return_type)) {
+                if (is_int($1->return_type)) {
+                    // casting de int para float em $1    
+                }
+                int return_size = (strlen("float list") + 1) * sizeof(char);
+                $$->return_type = (char*) malloc(sizeof(return_size));
+                strcpy($$->return_type, "float list");
+            }
+        } else if ((strcmp($2.content, ">>") == 0)) {
+            Symbol* functions_symbol = get_function(symbol_root, $1->token->content);
+
+            if (functions_symbol->param_qt != 1) {
+                printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
+                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" A variável à esquerda do operando "RED">>"REGULAR" deve ser uma função unária, a função usada possui "RED"%d"REGULAR" argumentos!\n", functions_symbol->param_qt);
+                errors++;
+            } else if (!is_simple_type($1->return_type, $1->return_type)) {
+                printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
+                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" A função à esquerda do operando "RED">>"REGULAR" deve retornar um INT ou FLOAT!\n");
+                errors++;
+            } else if (is_simple_type($3->return_type, $3->return_type)) {
+                printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
+                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" A variável à direita do operando "RED">>"REGULAR" deve ser uma INT LIST ou FLOAT LIST!\n");
+                errors++;
+            } else if (is_int($1->return_type)) {
+                int return_size = (strlen("int list") + 1) * sizeof(char);
+                $$->return_type = (char*) malloc(sizeof(return_size));
+                strcpy($$->return_type, "int list");
+            } else if (is_float($1->return_type)) {
+                int return_size = (strlen("float list") + 1) * sizeof(char);
+                $$->return_type = (char*) malloc(sizeof(return_size));
+                strcpy($$->return_type, "float list");
+            }
+        } else if ((strcmp($2.content, "<<") == 0)) {
+            Symbol* functions_symbol = get_function(symbol_root, $1->token->content);
+
+            if (functions_symbol->param_qt != 1) {
+                printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
+                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" A variável à esquerda do operando "RED"<<"REGULAR" deve ser uma função unária, a função usada possui "RED"%d"REGULAR" argumentos!\n", functions_symbol->param_qt);
+                errors++;
+            } else if (!is_simple_type($1->return_type, $1->return_type)) {
+                printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
+                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" A função à esquerda do operando "RED"<<"REGULAR" deve retornar um INT ou FLOAT!\n");
+                errors++;
+            } else if (is_simple_type($3->return_type, $3->return_type)) {
+                printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
+                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" A variável à direita do operando "RED"<<"REGULAR" deve ser uma INT LIST ou FLOAT LIST!\n");
+                errors++;
+            } else if (is_int_list($3->return_type)) {
+                int return_size = (strlen("int list") + 1) * sizeof(char);
+                $$->return_type = (char*) malloc(sizeof(return_size));
+                strcpy($$->return_type, "int list");
+            } else if (is_float_list($3->return_type)) {
+                int return_size = (strlen("float list") + 1) * sizeof(char);
+                $$->return_type = (char*) malloc(sizeof(return_size));
+                strcpy($$->return_type, "float list");
+            }
+        }
     }
     | relExp {
         $$ = $1;
@@ -649,7 +730,21 @@ unaryExp:
         $$ = populate_node("Expressão Aritmética Unária");
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $1;
-        $$->child_1 = $2;    
+        $$->child_1 = $2;
+
+        if (!is_simple_type($2->return_type, $2->return_type)) {
+            printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
+            printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operando "RED"-%s"REGULAR" deve ser do tipo INT ou LIST!\n", $2->token->content);
+            errors++;            
+        } else if (is_int($2->return_type)) {
+            int return_size = (strlen("int") + 1) * sizeof(char);
+            $$->return_type = (char*) malloc(sizeof(return_size));
+            strcpy($$->return_type, "int");
+        } else if (is_float($2->return_type)) {
+            int return_size = (strlen("float") + 1) * sizeof(char);
+            $$->return_type = (char*) malloc(sizeof(return_size));
+            strcpy($$->return_type, "float");
+        } 
     }
     | factor {
         $$ = $1;
@@ -687,16 +782,39 @@ factor:
 call:
     ID '(' args ')' {
 
+        Symbol* functions_symbol = get_function(symbol_root, $1.content);
+        int param_locations = param_location(functions_symbol, 0);
+
         if (!symbol_exists(symbol_root, scope_root, $1.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Função "RED"%s"REGULAR" não declarada!\n", $1.content);
             errors++;
+        } else if (param_call != functions_symbol->param_qt) {
+            printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
+            printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O número de parâmetros da chamada da função ");
+            printf(""RED"%s"REGULAR" tem "RED"%d"REGULAR" argumentos, entretanto ele deveria ter "RED"%d"REGULAR" argumentos\n", $1.content, param_call, functions_symbol->param_qt);
+            errors++;            
+        } else {
+            for (int i = 0; i < param_call; i++) {
+                Symbol* param_symbol = get_param(functions_symbol, param_locations);
+                param_locations--;
+                if ((strcmp(param_symbol->type, param_type[i]) != 0)) {
+                    printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
+                    printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo do %dº parâmetro da chamada da função "RED"%s"REGULAR" deveria ser "RED"%s"REGULAR" e não "RED"%s"REGULAR" \n", (i+1), $1.content, param_symbol->type, param_type[i]);
+                    errors++;
+                }
+            }
         }
 
         $$ = populate_node("Chamada de Função"); 
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $1;
-        $$->child_1 = $3;    
+        $$->child_1 = $3;
+
+        int return_size = (strlen(get_type(symbol_root, scope_root, $1.content)) + 1) * sizeof(char);
+        $$->return_type = (char*) malloc(sizeof(return_size));
+        strcpy($$->return_type, get_type(symbol_root, scope_root, $1.content));
+        param_call = 0;  
     }
 ;
 
@@ -709,12 +827,18 @@ args:
 
 argList:
     logExp ',' argList {
+        param_type[param_call] = $1->return_type;
+
         $$ = populate_node("Lista de Argumentos");
         $$->child_1 = $1;
         $$->child_2 = $3;
+        param_call++;
     }
     | logExp {
+        param_type[param_call] = $1->return_type;
+
         $$ = $1;
+        param_call++;
     }
 ;
 
