@@ -27,7 +27,9 @@
     Symbol* symbol_root = NULL;
     int param_qt = 0;
     int param_call = 0;
-    char* param_type[10];
+    int param_line[100];
+    int param_column[100];
+    char* param_type[100];
     char* function_type[1];
     int is_return = 0;
 %}
@@ -828,10 +830,24 @@ call:
             for (int i = 0; i < param_call; i++) {
                 Symbol* param_symbol = get_param(functions_symbol, param_locations);
                 param_locations--;
-                if ((strcmp(param_symbol->type, param_type[i]) != 0)) {
-                    printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
-                    printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo do %dº parâmetro da chamada da função "RED"%s"REGULAR" deveria ser "RED"%s"REGULAR" e não "RED"%s"REGULAR" \n", (i+1), $1.content, param_symbol->type, param_type[i]);
-                    errors++;
+                if (!is_simple_type(param_symbol->type, param_type[i])) {
+                    if (strcmp(param_symbol->type, param_type[i]) != 0){
+                        printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", param_line[i], param_column[i]);
+                        printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo do parâmetro "RED"%s"REGULAR" é "RED"%s"REGULAR", entretanto na chamada está sendo passado um "RED"%s"REGULAR"\n", param_symbol->ID, param_symbol->type, param_type[i]);
+                        errors++;
+                    }
+                } else if (!is_simple_type(param_symbol->type, param_symbol->type) || !is_simple_type(param_type[i], param_type[i])) {
+                    if (strcmp(function_type[0], $1.content) != 0){
+                        printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", param_line[i], param_column[i]);
+                        printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo do parâmetro "RED"%s"REGULAR" é "RED"%s"REGULAR", entretanto na chamada está sendo passado um "RED"%s"REGULAR"\n", param_symbol->ID, param_symbol->type, param_type[i]);
+                        errors++;
+                    }
+                } else if (is_simple_type(param_symbol->type, param_type[i])) {
+                    if (is_float(param_symbol->type) && is_int(param_type[i])){
+                        // casting de int para float no parâmetro da chamada de função
+                    } else if (is_int(param_symbol->type) && is_float(param_type[i])){
+                        // casting de float para int no parâmetro da chamada de função
+                    }
                 }
             }
         }
@@ -858,6 +874,8 @@ args:
 argList:
     logExp ',' argList {
         param_type[param_call] = $1->return_type;
+        param_line[param_call] = $1->token->line;
+        param_column[param_call] = $1->token->column;
 
         $$ = populate_node("Lista de Argumentos");
         $$->child_1 = $1;
@@ -866,6 +884,8 @@ argList:
     }
     | logExp {
         param_type[param_call] = $1->return_type;
+        param_line[param_call] = $1->token->line;
+        param_column[param_call] = $1->token->column;
 
         $$ = $1;
         param_call++;
