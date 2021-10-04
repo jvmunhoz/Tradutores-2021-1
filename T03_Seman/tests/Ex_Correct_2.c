@@ -15,7 +15,7 @@ int main() {
     }
 
     for (i = 0; i < count; i = i + 1) {
-        age = (age + (% lst));
+        age = (age + (?lst));
     }
 
     write("A soma da idade de todos os 10 alunos é ");write(age);

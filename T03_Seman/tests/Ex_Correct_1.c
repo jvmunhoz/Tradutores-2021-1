@@ -13,9 +13,8 @@ int main () {
 }   else if ((number != number2) || (number5 < number2)) {
     number2 = number5 / (number3 + number4);
 }   else if ((!number2 >= number4) || (!number3 <= number6)) {
-    number6 = number5 - (% LST);
+    number6 = number5 - (?LST);
 }
 return 0;
 
 }
-
