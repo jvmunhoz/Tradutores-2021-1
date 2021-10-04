@@ -25,9 +25,9 @@ extern Node* populate_node (char* identifier) {
     node->child_4 = NULL;
     node->token = NULL;
 
-    int return_size = (strlen("") + 1) * sizeof(char);
+    int return_size = (strlen("undefined") + 1) * sizeof(char);
     node->return_type = (char*) malloc(sizeof(return_size));
-    strcpy(node->return_type, "");
+    strcpy(node->return_type, "undefined");
 
     return node;
 }

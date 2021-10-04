@@ -120,15 +120,17 @@ extern char* get_type(Symbol* symbol_root, StackNode* scope_root, char* name) {
 }
 
 extern Symbol* get_function(Symbol* symbol_root, char* name) {
+    if (is_empty_symbol(symbol_root)) return NULL;
+
     if (symbol_root->scope != 0) {
         return get_function(symbol_root->next_symbol, name);
     } else if (strcmp(symbol_root->ID, name) != 0) {
         return get_function(symbol_root->next_symbol, name);
-    } else if (strcmp(symbol_root->ID, name) == 0) {
+    } else if ((strcmp(symbol_root->ID, name) == 0) && (symbol_root->is_function == 1)) {
         return symbol_root;
     }
 
-    return symbol_root;
+    return NULL;
 }
 
 extern int param_location(Symbol* symbol_root, int return_value) {
@@ -142,6 +144,7 @@ extern int param_location(Symbol* symbol_root, int return_value) {
 }
 
 extern Symbol* get_param(Symbol* symbol_root, int param_location) {
+    if (is_empty_symbol(symbol_root)) return NULL;
 
     if (param_location != 0) {
         return get_param(symbol_root->next_symbol, (param_location-1));
