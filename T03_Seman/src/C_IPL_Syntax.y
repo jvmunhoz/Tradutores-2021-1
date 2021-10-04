@@ -827,28 +827,30 @@ call:
             printf(""RED"%s"REGULAR" tem "RED"%d"REGULAR" argumentos, entretanto ele deveria ter "RED"%d"REGULAR" argumentos\n", $1.content, param_call, functions_symbol->param_qt);
             errors++;            
         } else {
+            int param = param_call - 1;
             for (int i = 0; i < param_call; i++) {
                 Symbol* param_symbol = get_param(functions_symbol, param_locations);
                 param_locations--;
-                if (!is_simple_type(param_symbol->type, param_type[i])) {
-                    if (strcmp(param_symbol->type, param_type[i]) != 0){
+                if (!is_simple_type(param_symbol->type, param_type[param])) {
+                    if (strcmp(param_symbol->type, param_type[param]) != 0){
                         printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", param_line[i], param_column[i]);
-                        printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo do parâmetro "RED"%s"REGULAR" é "RED"%s"REGULAR", entretanto na chamada está sendo passado um "RED"%s"REGULAR"\n", param_symbol->ID, param_symbol->type, param_type[i]);
+                        printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo do parâmetro "RED"%s"REGULAR" é "RED"%s"REGULAR", entretanto na chamada está sendo passado um "RED"%s"REGULAR"\n", param_symbol->ID, param_symbol->type, param_type[param]);
                         errors++;
                     }
-                } else if (!is_simple_type(param_symbol->type, param_symbol->type) || !is_simple_type(param_type[i], param_type[i])) {
+                } else if (!is_simple_type(param_symbol->type, param_symbol->type) || !is_simple_type(param_type[param], param_type[param])) {
                     if (strcmp(function_type[0], $1.content) != 0){
                         printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", param_line[i], param_column[i]);
-                        printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo do parâmetro "RED"%s"REGULAR" é "RED"%s"REGULAR", entretanto na chamada está sendo passado um "RED"%s"REGULAR"\n", param_symbol->ID, param_symbol->type, param_type[i]);
+                        printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo do parâmetro "RED"%s"REGULAR" é "RED"%s"REGULAR", entretanto na chamada está sendo passado um "RED"%s"REGULAR"\n", param_symbol->ID, param_symbol->type, param_type[param]);
                         errors++;
                     }
-                } else if (is_simple_type(param_symbol->type, param_type[i])) {
-                    if (is_float(param_symbol->type) && is_int(param_type[i])){
+                } else if (is_simple_type(param_symbol->type, param_type[param])) {
+                    if (is_float(param_symbol->type) && is_int(param_type[param])){
                         // casting de int para float no parâmetro da chamada de função
-                    } else if (is_int(param_symbol->type) && is_float(param_type[i])){
+                    } else if (is_int(param_symbol->type) && is_float(param_type[param])){
                         // casting de float para int no parâmetro da chamada de função
                     }
                 }
+                param--;
             }
         }
 
@@ -935,6 +937,11 @@ int main(int argc, char *argv[]){
     argc++;
     if(yyin){
         yyparse();
+        if (!symbol_exists(symbol_root, scope_root, "main")) {
+            printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", 0, 0);
+            printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" A função "RED"main"REGULAR" não foi declarada!\n");
+            errors++;
+        }
         if (errors == 0) {
             print_node(abstract_tree, 1);
             print_table_header();
