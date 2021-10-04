@@ -28,6 +28,8 @@
     int param_qt = 0;
     int param_call = 0;
     char* param_type[10];
+    char* function_type[1];
+    int is_return = 0;
 %}
 
 %union{
@@ -147,6 +149,30 @@ funDecl:
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $2.line, $2.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Função "RED"%s"REGULAR" declarada mais de uma vez!\n", $2.content);
             errors++;
+        } else if (is_return != 1) {
+            if (strcmp(function_type[0], $1.content) != 0){
+                printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $2.line, $2.column);
+                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo da função "RED"%s"REGULAR" é "RED"%s"REGULAR", entretanto não há retorno na função\n", $2.content, $1.content);
+                errors++;
+            }
+        } else if (!is_simple_type(function_type[0], $1.content)) {
+            if (strcmp(function_type[0], $1.content) != 0){
+                printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $2.line, $2.column);
+                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo da função "RED"%s"REGULAR" é "RED"%s"REGULAR", entretanto está retornando "RED"%s"REGULAR"\n", $2.content, $1.content, function_type[0]);
+                errors++;
+            }
+        } else if (!is_simple_type(function_type[0], function_type[0]) || !is_simple_type($1.content, $1.content)) {
+            if (strcmp(function_type[0], $1.content) != 0){
+                printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $2.line, $2.column);
+                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo da função "RED"%s"REGULAR" é "RED"%s"REGULAR", entretanto está retornando "RED"%s"REGULAR"\n", $2.content, $1.content, function_type[0]);
+                errors++;
+            }
+        } else if (is_simple_type(function_type[0], $1.content)) {
+            if (is_float($1.content) && is_int(function_type[0])){
+                // casting de int para float no retorno da função
+            } else if (is_int($1.content) && is_float(function_type[0])){
+                // casting de float para int no retorno da função
+            }
         }
 
         Node* type_node = populate_node("Tipo da Função");
@@ -172,6 +198,7 @@ funDecl:
         );
         position++;
         param_qt = 0;
+        is_return = 0;
     }
 ;
 
@@ -311,7 +338,10 @@ forStmt:
 returnStmt:
     KW_RETURN expStmt {
         $$ = populate_node("Retorno");
-        $$->child_1 = $2; 
+        $$->child_1 = $2;
+
+        function_type[0] = $2->return_type;
+        is_return = 1;
     }
 ;
 

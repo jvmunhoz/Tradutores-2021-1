@@ -113,5 +113,6 @@ extern void print_node(Node* tree_node, int nivel) {
         free(tree_node->token->content);
     }
     free(tree_node->token);
+    free(tree_node->return_type);
     free(tree_node);
 }
