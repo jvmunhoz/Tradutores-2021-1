@@ -24,6 +24,8 @@ extern Node* populate_node (char* identifier) {
     node->child_3 = NULL;
     node->child_4 = NULL;
     node->token = NULL;
+    node->cast_to_int = 0;
+    node->cast_to_float = 0;
 
     int return_size = (strlen("undefined") + 1) * sizeof(char);
     node->return_type = (char*) malloc(sizeof(return_size));
@@ -100,7 +102,22 @@ extern void print_node(Node* tree_node, int nivel) {
     } 
     
 
-    if (tree_node->token != NULL) printf(":"GREEN" %s"REGULAR, tree_node->token->content);
+    if (tree_node->token != NULL) {
+        printf(":"GREEN" %s  "REGULAR, tree_node->token->content);
+    }
+
+    if ((strcmp(tree_node->return_type, "undefined") != 0) && (strcmp(tree_node->return_type, "error") != 0)) {
+        printf(""RED"[ TYPE: %s ]  "REGULAR"", tree_node->return_type);
+    }
+
+    if (tree_node->cast_to_int) {
+        printf(""BLUE"< CAST_TO_INT >"REGULAR"");
+    }
+
+    if (tree_node->cast_to_float) {
+        printf(""BLUE"< CAST_TO_FLOAT >"REGULAR"");
+    }
+
     printf("\n");
 
     print_node(tree_node->child_1, nivel + 1);

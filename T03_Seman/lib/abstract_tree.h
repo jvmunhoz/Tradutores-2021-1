@@ -16,6 +16,8 @@ typedef struct Node {
     struct Node*  child_4;
     Token* token;
     char*  return_type;
+    int cast_to_int;
+    int cast_to_float;
 } Node;
 
 extern Node* populate_node (char* identifier);
