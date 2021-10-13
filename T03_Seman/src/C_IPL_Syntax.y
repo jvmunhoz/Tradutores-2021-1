@@ -147,13 +147,33 @@ varDecl:
 ;
 
 funDecl:
-    TYPE ID '(' params ')' compoundStmt {
+    TYPE ID '(' params ')' {
 
         if (is_repeated(symbol_root, $2.scope, $2.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $2.line, $2.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Função "RED"%s"REGULAR" declarada mais de uma vez!\n", $2.content);
             errors++;
-        } else if (is_return == 0) {
+        }
+
+        Node* type_node = populate_node("Tipo da Função");
+        type_node->token = (Token*) malloc(sizeof(Token));
+        *type_node->token = $1;
+
+        pushSymbol (
+            &symbol_root,
+            $2.line, 
+            $2.column, 
+            0,
+            $2.content,
+            type_node->token->content,
+            1,
+            param_qt 
+        );
+        param_qt = 0;
+
+    } compoundStmt {
+
+        if (is_return == 0) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $2.line, $2.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo da função "RED"%s"REGULAR" é "RED"%s"REGULAR", entretanto não há retorno na função\n", $2.content, $1.content);
             errors++;
@@ -192,20 +212,9 @@ funDecl:
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $2;
         $$->child_2 = $4;
-        $$->child_3 = $6;
+        $$->child_3 = $7;
 
-        pushSymbol (
-            &symbol_root,
-            $2.line, 
-            $2.column, 
-            $2.scope,
-            $2.content,
-            type_node->token->content,
-            1,
-            param_qt 
-        );
         position++;
-        param_qt = 0;
         is_return = 0;
     }
 ;
@@ -358,13 +367,13 @@ returnStmt:
 readFunc:
     READ '(' ID ')' {
 
-        if (!symbol_exists(symbol_root, scope_root, $3.content)) {
+        if (!symbol_exists(symbol_root, scope_root, scope_root, $3.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $3.line, $3.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variável "RED"%s"REGULAR" não declarada!\n", $3.content);
             errors++;
-        } else if ((strcmp(get_type(symbol_root, scope_root, $3.content), "int") != 0) && (strcmp(get_type(symbol_root, scope_root, $3.content), "float") != 0)) {
+        } else if ((strcmp(get_type(symbol_root, scope_root, scope_root, $3.content), "int") != 0) && (strcmp(get_type(symbol_root, scope_root, scope_root, $3.content), "float") != 0)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $3.line, $3.column);
-            printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variável "RED"%s"REGULAR" deve ser do tipo INT ou FLOAT, entretanto ela é "RED"%s"REGULAR"!\n", $3.content, get_type(symbol_root, scope_root, $3.content));
+            printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variável "RED"%s"REGULAR" deve ser do tipo INT ou FLOAT, entretanto ela é "RED"%s"REGULAR"!\n", $3.content, get_type(symbol_root, scope_root, scope_root, $3.content));
             errors++;
         }
 
@@ -402,11 +411,11 @@ exp:
         *$$->token = $1; 
         $$->child_1 = $3;
 
-        int return_size = (strlen(get_type(symbol_root, scope_root, $1.content)) + 1) * sizeof(char);
+        int return_size = (strlen(get_type(symbol_root, scope_root, scope_root, $1.content)) + 1) * sizeof(char);
         $$->return_type = (char*) malloc(sizeof(return_size));
-        strcpy($$->return_type, get_type(symbol_root, scope_root, $1.content));
+        strcpy($$->return_type, get_type(symbol_root, scope_root, scope_root, $1.content));
 
-        if (!symbol_exists(symbol_root, scope_root, $1.content)) {
+        if (!symbol_exists(symbol_root, scope_root, scope_root, $1.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variável "RED"%s"REGULAR" não declarada!\n", $1.content);
             errors++;
@@ -846,7 +855,7 @@ factor:
     }
     | ID {
 
-        if (!symbol_exists(symbol_root, scope_root, $1.content)) {
+        if (!symbol_exists(symbol_root, scope_root, scope_root, $1.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variável "RED"%s"REGULAR" não declarada!\n", $1.content);
             errors++;
@@ -856,9 +865,9 @@ factor:
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $1;
 
-        int return_size = (strlen(get_type(symbol_root, scope_root, $1.content)) + 1) * sizeof(char);
+        int return_size = (strlen(get_type(symbol_root, scope_root, scope_root, $1.content)) + 1) * sizeof(char);
         $$->return_type = (char*) malloc(sizeof(return_size));
-        strcpy($$->return_type, get_type(symbol_root, scope_root, $1.content));
+        strcpy($$->return_type, get_type(symbol_root, scope_root, scope_root, $1.content));
     }
 ;
 
@@ -873,7 +882,7 @@ call:
             param_locations = param_location(functions_symbol, 0);
         }
 
-        if (!symbol_exists(symbol_root, scope_root, $1.content)) {
+        if (!symbol_exists(symbol_root, scope_root, scope_root, $1.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Função "RED"%s"REGULAR" não declarada!\n", $1.content);
             errors++;
@@ -919,9 +928,9 @@ call:
         *$$->token = $1;
         $$->child_1 = $3;
 
-        int return_size = (strlen(get_type(symbol_root, scope_root, $1.content)) + 1) * sizeof(char);
+        int return_size = (strlen(get_type(symbol_root, scope_root, scope_root, $1.content)) + 1) * sizeof(char);
         $$->return_type = (char*) malloc(sizeof(return_size));
-        strcpy($$->return_type, get_type(symbol_root, scope_root, $1.content));
+        strcpy($$->return_type, get_type(symbol_root, scope_root, scope_root, $1.content));
         param_call = 0;  
     }
 ;
@@ -997,7 +1006,7 @@ int main(int argc, char *argv[]){
     argc++;
     if(yyin){
         yyparse();
-        if (!symbol_exists(symbol_root, scope_root, "main")) {
+        if (!symbol_exists(symbol_root, scope_root, scope_root, "main")) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", 0, 0);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" A função "RED"main"REGULAR" não foi declarada!\n");
             errors++;
