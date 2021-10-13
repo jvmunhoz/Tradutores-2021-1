@@ -457,41 +457,6 @@ logExp:
         $$->return_type = (char*) malloc(sizeof(return_size));
         strcpy($$->return_type, "int");
     }
-    | unaryLogExp{
-        $$ = $1;
-    }
-;
-
-unaryLogExp:
-    EXCLAM listExp {
-
-        if (is_int_list($2->return_type) || is_float_list($2->return_type) || is_nil($2->return_type)) {
-            $$ = populate_node("Operação Unária de Lista");
-            $$->token = (Token*) malloc(sizeof(Token));
-            *$$->token = $1;
-            $$->child_1 = $2;
-
-            if (is_int_list($2->return_type)) {
-                int return_size = (strlen("int list") + 1) * sizeof(char);
-                $$->return_type = (char*) malloc(sizeof(return_size));
-                strcpy($$->return_type, "int list");
-            } else if (is_float_list($2->return_type)){
-                int return_size = (strlen("float list") + 1) * sizeof(char);
-                $$->return_type = (char*) malloc(sizeof(return_size));
-                strcpy($$->return_type, "float list");
-            }
-
-        } else {
-            $$ = populate_node("Operação Lógica Unária");
-            $$->token = (Token*) malloc(sizeof(Token));
-            *$$->token = $1; 
-            $$->child_1 = $2;
-
-            int return_size = (strlen("int") + 1) * sizeof(char);
-            $$->return_type = (char*) malloc(sizeof(return_size));
-            strcpy($$->return_type, "int");
-        }  
-    }
     | listExp{
         $$ = $1;
     }
@@ -803,7 +768,42 @@ unaryListExp:
             }
         }
     }
-    | unaryExp {
+    | unaryLogExp {
+        $$ = $1;
+    }
+;
+
+unaryLogExp:
+    EXCLAM unaryExp {
+
+        if (is_int_list($2->return_type) || is_float_list($2->return_type) || is_nil($2->return_type)) {
+            $$ = populate_node("Operação Unária de Lista");
+            $$->token = (Token*) malloc(sizeof(Token));
+            *$$->token = $1;
+            $$->child_1 = $2;
+
+            if (is_int_list($2->return_type)) {
+                int return_size = (strlen("int list") + 1) * sizeof(char);
+                $$->return_type = (char*) malloc(sizeof(return_size));
+                strcpy($$->return_type, "int list");
+            } else if (is_float_list($2->return_type)){
+                int return_size = (strlen("float list") + 1) * sizeof(char);
+                $$->return_type = (char*) malloc(sizeof(return_size));
+                strcpy($$->return_type, "float list");
+            }
+
+        } else {
+            $$ = populate_node("Operação Lógica Unária");
+            $$->token = (Token*) malloc(sizeof(Token));
+            *$$->token = $1; 
+            $$->child_1 = $2;
+
+            int return_size = (strlen("int") + 1) * sizeof(char);
+            $$->return_type = (char*) malloc(sizeof(return_size));
+            strcpy($$->return_type, "int");
+        }  
+    }
+    | unaryExp{
         $$ = $1;
     }
 ;

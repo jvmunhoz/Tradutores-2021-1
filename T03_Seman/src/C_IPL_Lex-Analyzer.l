@@ -16,6 +16,7 @@
     void unclosed_comment();
     void print_token(char token_name[]);
     void process_token();
+    void process_type_token();
     void unclosed_string();
     int prev_column = 1;
     int prev_line = 1;
@@ -29,7 +30,9 @@
 
 DIGIT       [0-9]
 
-TYPE        int|float|"int list"|"float list"
+TYPE        int|float
+
+LIST        list
 
 NIL         (NIL)
 
@@ -84,6 +87,12 @@ ID          [A-Za-z_][A-Za-z0-9_]*
 
 {TYPE} {
     process_token();
+    declaration = 1;
+    return TYPE;
+}
+
+{TYPE}[ \t]+{LIST} {
+    process_type_token();
     declaration = 1;
     return TYPE;
 }
@@ -281,6 +290,40 @@ void process_token() {
     yylval.token.scope = peek_scope(scope_root);
     yylval.token.content = (char*) malloc(input_size);
     strcpy(yylval.token.content, yytext);
+
+    column += yyleng;
+}
+
+void process_type_token() {
+
+    if (scope == 0 && first_time == 0) {
+        push_scope(&scope_root, scope);
+        first_time++;
+    }
+    prev_line = yylineno;
+    prev_column = column;
+
+    char *ret;
+
+    int input_size;
+
+    if ((ret = strstr(yytext, "int"))) {
+        input_size = (strlen("int list") + 1) * sizeof(char);
+
+        yylval.token.line = yylineno;
+        yylval.token.column = column;
+        yylval.token.scope = peek_scope(scope_root);
+        yylval.token.content = (char*) malloc(input_size);
+        strcpy(yylval.token.content, "int list");
+    } else {
+        input_size = (strlen("float list") + 1) * sizeof(char);
+
+        yylval.token.line = yylineno;
+        yylval.token.column = column;
+        yylval.token.scope = peek_scope(scope_root);
+        yylval.token.content = (char*) malloc(input_size);
+        strcpy(yylval.token.content, "float list");
+    }
 
     column += yyleng;
 }
