@@ -48,6 +48,13 @@ extern int is_simple_type (char* type1, char* type2) {
     return 1;
 }
 
+extern int not_an_error (char* type) {
+    if ((strcmp(type, "undefined") != 0) && (strcmp(type, "error") != 0)) {
+        return 1;
+    }
+    return 0;
+}
+
 extern int is_int (char* type) {
     if ( strcmp(type, "int") == 0 ) {
         return 1;

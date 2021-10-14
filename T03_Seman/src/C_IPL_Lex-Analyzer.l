@@ -21,7 +21,7 @@
     int prev_column = 1;
     int prev_line = 1;
     int column = 1;
-    int errors = 0;
+    int lex_sint_errors = 0;
     int open = 0;
     int declaration;
     int comment_line = 0;
@@ -246,7 +246,7 @@ ID          [A-Za-z_][A-Za-z0-9_]*
     printf(""RED"ERRO LÉXICO ---> "REGULAR"");
     printf("O padrão "RED"%s"REGULAR" não é reconhecido pela gramática\n", yytext);
     column += yyleng;
-    errors++;
+    lex_sint_errors++;
 }
 
 <IN_COMMENT>{
@@ -263,14 +263,14 @@ void unclosed_comment() {
     printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", comment_line, column);
     printf(""RED"ERRO LÉXICO ---> "REGULAR"");
     printf("Um comentário iniciado nessa linha chegou até o EOF e não foi fechado!\n");
-    errors++;
+    lex_sint_errors++;
 }
 
 void unclosed_string() {
     printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", yylineno, column);
     printf(""RED"ERRO LÉXICO ---> "REGULAR"");
     printf("Uma string iniciada nessa linha chegou até uma quebra de linha ou ao final do arquivo e não foi fechada!\n");
-    errors++;
+    lex_sint_errors++;
     yylineno++;
 }
 

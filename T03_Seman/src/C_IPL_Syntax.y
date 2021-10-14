@@ -18,7 +18,7 @@
     extern void yyerror(const char* e);
     extern int prev_line;
     extern int prev_column;
-    extern int errors;
+    extern int lex_sint_errors;
     extern FILE *yyin;
     Node* abstract_tree;
     int position = 0; 
@@ -33,6 +33,8 @@
     int param_locations = 0;
     Symbol* functions_symbol = NULL;
     int is_return = 0;
+    int function_call = 0;
+    int semantic_errors = 0;
 %}
 
 %union{
@@ -119,7 +121,7 @@ varDecl:
         if (is_repeated(symbol_root, $2.scope, $2.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $2.line, $2.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variável "RED"%s"REGULAR" declarada mais de uma vez!\n", $2.content);
-            errors++;
+            semantic_errors++;
         }
 
         Node* type_node = populate_node("Tipo da variável");
@@ -151,7 +153,7 @@ funDecl:
         if (is_repeated(symbol_root, $2.scope, $2.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $2.line, $2.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Função "RED"%s"REGULAR" declarada mais de uma vez!\n", $2.content);
-            errors++;
+            semantic_errors++;
         }
 
         Node* type_node = populate_node("Tipo da Função");
@@ -179,12 +181,6 @@ funDecl:
         strcpy(function_name, $2.content);
 
     } compoundStmt {
-
-      //  if (is_return == 0) {
-        //    printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $2.line, $2.column);
-        //    printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo da função "RED"%s"REGULAR" é "RED"%s"REGULAR", entretanto não há retorno na função\n", $2.content, $1.content);
-           // errors++;
-       // }
 
         Node* type_node = populate_node("Tipo da Função");
         type_node->token = (Token*) malloc(sizeof(Token));
@@ -226,7 +222,7 @@ paramTypeList:
         if (is_repeated(symbol_root, $2.scope, $2.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $2.line, $2.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Parâmetro "RED"%s"REGULAR" declarado mais de uma vez!\n", $2.content);
-            errors++;
+            semantic_errors++;
         }
 
         Node* type_node = populate_node("Tipo da Função");
@@ -344,26 +340,27 @@ returnStmt:
         $$ = populate_node("Retorno");
         $$->child_1 = $2;
 
-        if (!is_simple_type($2->return_type, function_type)) {
-            if (strcmp($2->return_type, function_type) != 0){
-                printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $2->token->line, $2->token->column);
-                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo da função "RED"%s"REGULAR" é "RED"%s"REGULAR", entretanto está retornando "RED"%s"REGULAR"\n", function_name, function_type, $2->return_type);
-                errors++;
+        if (not_an_error($2->return_type)) {
+            if (!is_simple_type($2->return_type, function_type)) {
+                if (strcmp($2->return_type, function_type) != 0 ){
+                    printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $2->token->line, $2->token->column);
+                    printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo da função "RED"%s"REGULAR" é "RED"%s"REGULAR", entretanto está retornando "RED"%s"REGULAR"\n", function_name, function_type, $2->return_type);
+                    semantic_errors++;
+                    }
+            } else if (!is_simple_type($2->return_type, $2->return_type) || !is_simple_type(function_type, function_type)) {
+                if (strcmp($2->return_type, function_type) != 0){
+                    printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $2->token->line, $2->token->column);
+                    printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo da função "RED"%s"REGULAR" é "RED"%s"REGULAR", entretanto está retornando "RED"%s"REGULAR"\n", function_name, function_type, $2->return_type);
+                    semantic_errors++;
                 }
-        } else if (!is_simple_type($2->return_type, $2->return_type) || !is_simple_type(function_type, function_type)) {
-            if (strcmp($2->return_type, function_type) != 0){
-                printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $2->token->line, $2->token->column);
-                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo da função "RED"%s"REGULAR" é "RED"%s"REGULAR", entretanto está retornando "RED"%s"REGULAR"\n", function_name, function_type, $2->return_type);
-                errors++;
-            }
-        } else if (is_simple_type($2->return_type, function_type)) {
-            if (is_float(function_type) && is_int($2->return_type)){
-                $2->cast_to_float = 1;
-            } else if (is_int(function_type) && is_float($2->return_type)){
-                $2->cast_to_int = 1;
+            } else if (is_simple_type($2->return_type, function_type)) {
+                if (is_float(function_type) && is_int($2->return_type)){
+                    $2->cast_to_float = 1;
+                } else if (is_int(function_type) && is_float($2->return_type)){
+                    $2->cast_to_int = 1;
+                }
             }
         }
-
         is_return++;
         
     }
@@ -375,11 +372,11 @@ readFunc:
         if (!symbol_exists(symbol_root, scope_root, scope_root, $3.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $3.line, $3.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variável "RED"%s"REGULAR" não declarada!\n", $3.content);
-            errors++;
+            semantic_errors++;
         } else if ((strcmp(get_type(symbol_root, scope_root, scope_root, $3.content), "int") != 0) && (strcmp(get_type(symbol_root, scope_root, scope_root, $3.content), "float") != 0)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $3.line, $3.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variável "RED"%s"REGULAR" deve ser do tipo INT ou FLOAT, entretanto ela é "RED"%s"REGULAR"!\n", $3.content, get_type(symbol_root, scope_root, scope_root, $3.content));
-            errors++;
+            semantic_errors++;
         }
 
         $$ = populate_node("Leitura");
@@ -423,36 +420,41 @@ exp:
         if (!symbol_exists(symbol_root, scope_root, scope_root, $1.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variável "RED"%s"REGULAR" não declarada!\n", $1.content);
-            errors++;
-        } else if (symbol_int(symbol_root, scope_root, $1.content)) {
+            semantic_errors++;
+        } else if (get_function(symbol_root, $3->token->content) && !function_call) {
+            printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
+            printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Função "RED"%s"REGULAR" declarada sem parâmetros!\n", $3->token->content);
+            semantic_errors++;
+        } else if (symbol_int(symbol_root, scope_root, $1.content) && not_an_error($3->return_type)) {
             if (!is_simple_type($3->return_type, $3->return_type)) {
                 printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
                 printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" A variável "RED"%s"REGULAR" só pode receber valores do tipo INT ou FLOAT, entretanto está recebendo "RED"%s"REGULAR"!\n", $1.content, $3->return_type);
-                errors++;
+                semantic_errors++;
             } else if (is_float($3->return_type)) {
                 $3->cast_to_int = 1;
             }
-        } else if (symbol_float(symbol_root, scope_root, $1.content)) {
+        } else if (symbol_float(symbol_root, scope_root, $1.content) && not_an_error($3->return_type)) {
             if (!is_simple_type($3->return_type, $3->return_type)) {
                 printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
                 printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" A variável "RED"%s"REGULAR" só pode receber valores do tipo INT ou FLOAT, entretanto está recebendo "RED"%s"REGULAR"!\n", $1.content, $3->return_type);
-                errors++;
+                semantic_errors++;
             } else if (is_int($3->return_type)) {
                 $3->cast_to_float = 1;
             }
-        } else if (symbol_int_list(symbol_root, scope_root, $1.content)) {
+        } else if (symbol_int_list(symbol_root, scope_root, $1.content) && not_an_error($3->return_type)) {
             if (!is_int_list($3->return_type) && !is_nil($3->return_type)) {
                 printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
                 printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" A variável "RED"%s"REGULAR" só pode receber valores do tipo INT LIST ou NIL, entretanto está recebendo "RED"%s"REGULAR"!\n", $1.content, $3->return_type);
-                errors++;
+                semantic_errors++;
             }
-        } else if (symbol_float_list(symbol_root, scope_root, $1.content)) {
+        } else if (symbol_float_list(symbol_root, scope_root, $1.content) && not_an_error($3->return_type)) {
             if (!is_float_list($3->return_type) && !is_nil($3->return_type)) {
                 printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
                 printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" A variável "RED"%s"REGULAR" só pode receber valores do tipo FLOAT LIST ou NIL, entretanto está recebendo "RED"%s"REGULAR"!\n", $1.content, $3->return_type);
-                errors++;
+                semantic_errors++;
             }
         }
+        function_call = 0;
     }
     | logExp{
         $$ = $1;
@@ -489,19 +491,19 @@ listExp:
             if (get_function(symbol_root, $1->token->content)) {
                 printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
                 printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operador à esquerda do operando "RED":"REGULAR" deve ser uma variável dos tipos INT ou FLOAT, entretanto está recebendo uma função!\n");
-                errors++;
+                semantic_errors++;
             } else if (get_function(symbol_root, $3->token->content)) {
                 printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
                 printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operador à direita do operando "RED":"REGULAR" deve ser uma variável dos tipos INT LIST ou FLOAT LIST, entretanto está recebendo uma função!\n");
-                errors++;
-            } else if (!is_simple_type($1->return_type, $1->return_type)) {
+                semantic_errors++;
+            } else if (!is_simple_type($1->return_type, $1->return_type) && not_an_error($1->return_type)) {
                 printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
                 printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operador à esquerda do operando "RED":"REGULAR" deve ser dos tipos INT ou FLOAT, entretanto está sendo passado um "RED"%s"REGULAR"!\n", $1->return_type);
-                errors++;
-            } else if (is_simple_type($3->return_type, $3->return_type)) {
+                semantic_errors++;
+            } else if (is_simple_type($3->return_type, $3->return_type) && not_an_error($3->return_type)) {
                 printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
                 printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operador à direita do operando "RED":"REGULAR" deve ser dos tipos INT LIST ou FLOAT LIST, entretanto está sendo passado um "RED"%s"REGULAR"!\n", $3->return_type);
-                errors++;
+                semantic_errors++;
             } else if (is_int_list($3->return_type)) {
                 if (is_float($1->return_type)) {
                     $1->cast_to_int = 1;
@@ -527,30 +529,32 @@ listExp:
                 param_symbol = get_param(functions_symbol, param_locations);
             }
 
-            if (!get_function(symbol_root, $1->token->content)) {
+            if (!symbol_exists(symbol_root, scope_root, scope_root, $1->token->content)) {
+                // Bug que se usar symbol_exists sem ser negado crasha o programa
+            } else if (!get_function(symbol_root, $1->token->content)) {
                 printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
                 printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operador à esquerda do operando "RED">>"REGULAR" deve ser uma função unária, entretanto está recebendo uma variável!\n");
-                errors++;
+                semantic_errors++;
             } else if (get_function(symbol_root, $3->token->content)) {
                 printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
                 printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operador à direita do operando "RED">>"REGULAR" deve ser uma variável dos tipos INT LIST ou FLOAT LIST, entretanto está recebendo uma função!\n");
-                errors++;
+                semantic_errors++;
             } else if (functions_symbol->param_qt != 1) {
                 printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
                 printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operador à esquerda do operando "RED">>"REGULAR" deve ser uma função unária, entretanto a função usada possui "RED"%d"REGULAR" argumentos!\n", functions_symbol->param_qt);
-                errors++;
-            } else if (!is_simple_type($1->return_type, $1->return_type)) {
+                semantic_errors++;
+            } else if (!is_simple_type($1->return_type, $1->return_type) && not_an_error($1->return_type)) {
                 printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
-                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operador à esquerda do operando "RED">>"REGULAR" deve retornar um INT ou FLOAT, entretanto está sendo passado um "RED"%s"REGULAR"!\n", $1->return_type);
-                errors++;
-            } else if (is_simple_type($3->return_type, $3->return_type)) {
+                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operador à esquerda do operando "RED">>"REGULAR" deve retornar um INT ou FLOAT, entretanto está sendo retornado um "RED"%s"REGULAR"!\n", $1->return_type);
+                semantic_errors++;
+            } else if (is_simple_type($3->return_type, $3->return_type) && not_an_error($3->return_type)) {
                 printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
-                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operador à direita do operando "RED">>"REGULAR" deve ser uma INT LIST ou FLOAT LIST, entretanto está sendo passado um "RED"%s"REGULAR"!\n", $3->return_type);
-                errors++;
-            } else if (!is_simple_type(param_symbol->type, param_symbol->type)) {
+                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operador à direita do operando "RED">>"REGULAR" deve ser uma INT LIST ou FLOAT LIST, entretanto está sendo retornado um "RED"%s"REGULAR"!\n", $3->return_type);
+                semantic_errors++;
+            } else if (!is_simple_type(param_symbol->type, param_symbol->type) && not_an_error(param_symbol->type)) {
                 printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
                 printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo do parâmetro da função "RED"%s"REGULAR" deveria ser INT ou FLOAT, entretanto é "RED"%s"REGULAR"!\n", $1->token->content, param_symbol->type);
-                errors++;
+                semantic_errors++;
             } else if (is_int($1->return_type)) {
                 int return_size = (strlen("int list") + 1) * sizeof(char);
                 $$->return_type = (char*) malloc(sizeof(return_size));
@@ -570,30 +574,32 @@ listExp:
                 param_symbol = get_param(functions_symbol, param_locations);
             }
 
-            if (!get_function(symbol_root, $1->token->content)) {
+            if (!symbol_exists(symbol_root, scope_root, scope_root, $1->token->content)) {
+                // Bug que se usar symbol_exists sem ser negado crasha o programa
+            } else if (!get_function(symbol_root, $1->token->content)) {
                 printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
                 printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operador à esquerda do operando "RED"<<"REGULAR" deve ser uma função unária, entretanto está recebendo uma variável!\n");
-                errors++;
+                semantic_errors++;
             } else if (get_function(symbol_root, $3->token->content)) {
                 printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
                 printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operador à direita do operando "RED"<<"REGULAR" deve ser uma variável dos tipos INT LIST ou FLOAT LIST, entretanto está recebendo uma função!\n");
-                errors++;
+                semantic_errors++;
             } else  if (functions_symbol->param_qt != 1) {
                 printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
                 printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operador à esquerda do operando "RED"<<"REGULAR" deve ser uma função unária, a função usada possui "RED"%d"REGULAR" argumentos!\n", functions_symbol->param_qt);
-                errors++;
-            } else if (!is_simple_type($1->return_type, $1->return_type)) {
+                semantic_errors++;
+            } else if (!is_simple_type($1->return_type, $1->return_type) && not_an_error($1->return_type)) {
                 printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
-                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operador à esquerda do operando "RED"<<"REGULAR" deve retornar um INT ou FLOAT!\n");
-                errors++;
-            } else if (is_simple_type($3->return_type, $3->return_type)) {
+                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operador à esquerda do operando "RED"<<"REGULAR" deve retornar um INT ou FLOAT, entretanto está sendo retornado um "RED"%s"REGULAR"!\n", $1->return_type);
+                semantic_errors++;
+            } else if (is_simple_type($3->return_type, $3->return_type) && not_an_error($3->return_type)) {
                 printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
-                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operador à direita do operando "RED"<<"REGULAR" deve ser uma INT LIST ou FLOAT LIST!\n");
-                errors++;
-            } else if (!is_simple_type(param_symbol->type, param_symbol->type)) {
+                printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operador à direita do operando "RED"<<"REGULAR" deve ser uma INT LIST ou FLOAT LIST, entretanto está sendo retornado um "RED"%s"REGULAR"!\n", $3->return_type);
+                semantic_errors++;
+            } else if (!is_simple_type(param_symbol->type, param_symbol->type) && not_an_error(param_symbol->type)) {
                 printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
                 printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo do parâmetro da função "RED"%s"REGULAR" deveria ser INT ou FLOAT, entretanto é "RED"%s"REGULAR"!\n", $1->token->content, param_symbol->type);
-                errors++;
+                semantic_errors++;
             } else if (is_int_list($3->return_type)) {
                 int return_size = (strlen("int list") + 1) * sizeof(char);
                 $$->return_type = (char*) malloc(sizeof(return_size));
@@ -637,12 +643,12 @@ relExp:
                 ) {
                 printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
                 printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Não é possível realizar uma operação de "RED"%s"REGULAR" entre um "RED"%s"REGULAR" e um "RED"%s"REGULAR"! \n", $2.content, $1->return_type, $3->return_type);
-                errors++;
+                semantic_errors++;
                 }
         } else {
                 printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
                 printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Não é possível realizar uma operação de "RED"%s"REGULAR" entre um "RED"%s"REGULAR" e um "RED"%s"REGULAR"! \n", $2.content, $1->return_type, $3->return_type);
-                errors++; 
+                semantic_errors++; 
         }
     }
     | sumExp {
@@ -658,10 +664,12 @@ sumExp:
         *$$->token = $2; 
         $$->child_2 = $3;
 
-        if (!is_simple_type($1->return_type, $3->return_type)) {
+        if (not_an_error($1->return_type) || not_an_error($3->return_type)) { 
+            // para filtrar mensagens desnecessárias
+        } else if (!is_simple_type($1->return_type, $3->return_type) && (not_an_error($1->return_type) || not_an_error($3->return_type)) ) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variáveis de uma soma devem ser do tipo INT ou FLOAT!\n");
-            errors++;            
+            semantic_errors++;            
         } else if (is_same_type($1->return_type, $3->return_type)) {
             int return_size = (strlen($1->return_type) + 1) * sizeof(char);
             $$->return_type = (char*) malloc(sizeof(return_size));
@@ -687,10 +695,12 @@ sumExp:
         *$$->token = $2; 
         $$->child_2 = $3;
 
-        if (!is_simple_type($1->return_type, $3->return_type)) {
+        if (not_an_error($1->return_type) || not_an_error($3->return_type)) { 
+            // para filtrar mensagens desnecessárias
+        } else if (!is_simple_type($1->return_type, $3->return_type) && (not_an_error($1->return_type) || not_an_error($3->return_type))) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variáveis de uma subtração devem ser do tipo INT ou FLOAT!\n");
-            errors++;            
+            semantic_errors++;            
         } else if (is_same_type($1->return_type, $3->return_type)) {
             int return_size = (strlen($1->return_type) + 1) * sizeof(char);
             $$->return_type = (char*) malloc(sizeof(return_size));
@@ -722,10 +732,12 @@ mulExp:
         *$$->token = $2; 
         $$->child_2 = $3;
 
-        if (!is_simple_type($1->return_type, $3->return_type)) {
+        if (not_an_error($1->return_type) || not_an_error($3->return_type)) { 
+            // para filtrar mensagens desnecessárias
+        } else if (!is_simple_type($1->return_type, $3->return_type) && (not_an_error($1->return_type) || not_an_error($3->return_type))) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variáveis de uma multiplicação ou divisão devem ser do tipo INT ou FLOAT!\n");
-            errors++;            
+            semantic_errors++;            
         } else if (is_same_type($1->return_type, $3->return_type)) {
             int return_size = (strlen($1->return_type) + 1) * sizeof(char);
             $$->return_type = (char*) malloc(sizeof(return_size));
@@ -759,13 +771,13 @@ unaryListExp:
         if (is_simple_type($2->return_type, $2->return_type)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operando "RED"%s"REGULAR" deve ser do tipo INT LIST ou FLOAT LIST!\n", $1.content);
-            errors++;            
+            semantic_errors++;            
         } else if ((strcmp($1.content, "?") == 0)) {
             if (is_int_list($2->return_type)) {
                 int return_size = (strlen("int") + 1) * sizeof(char);
                 $$->return_type = (char*) malloc(sizeof(return_size));
                 strcpy($$->return_type, "int");
-            } else {
+            } else if (is_float_list($2->return_type)){
                 int return_size = (strlen("float") + 1) * sizeof(char);
                 $$->return_type = (char*) malloc(sizeof(return_size));
                 strcpy($$->return_type, "float");
@@ -775,7 +787,7 @@ unaryListExp:
                 int return_size = (strlen("int list") + 1) * sizeof(char);
                 $$->return_type = (char*) malloc(sizeof(return_size));
                 strcpy($$->return_type, "int list");
-            } else {
+            } else if (is_float_list($2->return_type)){
                 int return_size = (strlen("float list") + 1) * sizeof(char);
                 $$->return_type = (char*) malloc(sizeof(return_size));
                 strcpy($$->return_type, "float list");
@@ -829,10 +841,10 @@ unaryExp:
         *$$->token = $1;
         $$->child_1 = $2;
 
-        if (!is_simple_type($2->return_type, $2->return_type)) {
+        if (!is_simple_type($2->return_type, $2->return_type) && not_an_error($2->return_type) ) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
-            printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operando "RED"-%s"REGULAR" deve ser do tipo INT ou FLOAT!\n", $2->token->content);
-            errors++;            
+            printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operando deve ser do tipo INT ou FLOAT!\n");
+            semantic_errors++;            
         } else if (is_int($2->return_type)) {
             int return_size = (strlen("int") + 1) * sizeof(char);
             $$->return_type = (char*) malloc(sizeof(return_size));
@@ -863,7 +875,7 @@ factor:
         if (!symbol_exists(symbol_root, scope_root, scope_root, $1.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variável "RED"%s"REGULAR" não declarada!\n", $1.content);
-            errors++;
+            semantic_errors++;
         }
 
         $$ = populate_node("ID");
@@ -886,15 +898,17 @@ call:
         if (!symbol_exists(symbol_root, scope_root, scope_root, $1.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Função "RED"%s"REGULAR" não declarada!\n", $1.content);
-            errors++;
+            semantic_errors++;
         } else if (!get_function(symbol_root, $1.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O identificador "RED"%s"REGULAR" pertence a uma variável, não uma função!\n", $1.content);
-            errors++;
+            semantic_errors++;
         } else {
             functions_symbol = get_function(symbol_root, call_name);
             param_locations = 1;
         }
+
+        function_call = 1;
 
     } '(' args ')' {
 
@@ -905,7 +919,7 @@ call:
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O número de parâmetros da chamada da função ");
             printf(""RED"%s"REGULAR" tem "RED"%d"REGULAR" argumentos, entretanto ela deveria ter "RED"%d"REGULAR" argumentos\n", $1.content, param_call, functions_symbol->param_qt);
-            errors++;
+            semantic_errors++;
             }        
         }
 
@@ -934,17 +948,17 @@ argList:
         if (get_function(symbol_root, call_name)) {
             Symbol* param_symbol = get_param(functions_symbol, param_locations);
             param_locations++;
-            if (!is_simple_type(param_symbol->type, $1->return_type)) {
+            if (!is_simple_type(param_symbol->type, $1->return_type) && not_an_error($1->return_type)) {
                 if (strcmp(param_symbol->type, $1->return_type) != 0){
                     printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
                     printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo do parâmetro "RED"%s"REGULAR" é "RED"%s"REGULAR", entretanto na chamada está sendo passado um "RED"%s"REGULAR"\n", param_symbol->ID, param_symbol->type, $1->return_type);
-                    errors++;
+                    semantic_errors++;
                 }
-            } else if (!is_simple_type(param_symbol->type, param_symbol->type) || !is_simple_type($1->return_type, $1->return_type)) {
+            } else if ((!is_simple_type(param_symbol->type, param_symbol->type) || !is_simple_type($1->return_type, $1->return_type)) && not_an_error($1->return_type)) {
                 if (strcmp(param_symbol->type, $1->return_type) != 0){
                     printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
                     printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo do parâmetro "RED"%s"REGULAR" é "RED"%s"REGULAR", entretanto na chamada está sendo passado um "RED"%s"REGULAR"\n", param_symbol->ID, param_symbol->type, $1->return_type);
-                    errors++;
+                    semantic_errors++;
                 }
             } else if (is_simple_type(param_symbol->type, $1->return_type)) {
                 if (is_float(param_symbol->type) && is_int($1->return_type)){
@@ -965,17 +979,17 @@ argList:
         if (get_function(symbol_root, call_name)) {
             Symbol* param_symbol = get_param(functions_symbol, param_locations);
             param_locations++;
-            if (!is_simple_type(param_symbol->type, $1->return_type)) {
+            if (!is_simple_type(param_symbol->type, $1->return_type) && not_an_error($1->return_type)) {
                 if (strcmp(param_symbol->type, $1->return_type) != 0){
                     printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
                     printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo do parâmetro "RED"%s"REGULAR" é "RED"%s"REGULAR", entretanto na chamada está sendo passado um "RED"%s"REGULAR"\n", param_symbol->ID, param_symbol->type, $1->return_type);
-                    errors++;
+                    semantic_errors++;
                 }
-            } else if (!is_simple_type(param_symbol->type, param_symbol->type) || !is_simple_type($1->return_type, $1->return_type)) {
+            } else if ((!is_simple_type(param_symbol->type, param_symbol->type) || !is_simple_type($1->return_type, $1->return_type)) && not_an_error($1->return_type)) {
                 if (strcmp(param_symbol->type, $1->return_type) != 0){
                     printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
                     printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo do parâmetro "RED"%s"REGULAR" é "RED"%s"REGULAR", entretanto na chamada está sendo passado um "RED"%s"REGULAR"\n", param_symbol->ID, param_symbol->type, $1->return_type);
-                    errors++;
+                    semantic_errors++;
                 }
             } else if (is_simple_type(param_symbol->type, $1->return_type)) {
                 if (is_float(param_symbol->type) && is_int($1->return_type)){
@@ -1026,7 +1040,7 @@ constant:
 extern void yyerror(const char* e) {
     printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", prev_line, prev_column);
     printf(""RED"ERRO SINTÁTICO ---> "REGULAR"%s\n", e);
-    errors++;
+    lex_sint_errors++;
 }  
 
 int main(int argc, char *argv[]){
@@ -1037,9 +1051,10 @@ int main(int argc, char *argv[]){
         if (!symbol_exists(symbol_root, scope_root, scope_root, "main")) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", 0, 0);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" A função "RED"main"REGULAR" não foi declarada!\n");
-            errors++;
+            semantic_errors++;
         }
-        if (errors == 0) {
+        if (lex_sint_errors == 0) {
+            printf("\n");
             print_node(abstract_tree, 1);
             print_table_header();
             for (int i = 0; i < position; i++) { 
@@ -1047,9 +1062,9 @@ int main(int argc, char *argv[]){
                 popSymbol(&symbol_root);
             }
             pop_scope(&scope_root);
-            printf("\n");
+            printf("\nOpa, foram encontrados "RED"%d"REGULAR" erros semânticos no arquivo!\n", semantic_errors);
         } else {
-            printf("\nOpa, foram encontrados "RED"%d"REGULAR" erros no arquivo. A árvore abstrata não será mostrada caso haja erros!\n\n", errors);
+            printf("\nOpa, foram encontrados "RED"%d"REGULAR" erros no arquivo. A árvore abstrata não será mostrada caso haja erros léxicos ou sintáticos!\n\n", lex_sint_errors);
             print_table_header();
             for (int i = 0; i < position; i++) { 
                 print_symbol(symbol_root);
