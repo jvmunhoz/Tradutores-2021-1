@@ -159,10 +159,6 @@ funDecl:
 
         char* default_return = NULL;
 
-        Node* type_node = populate_node("Tipo da Função");
-        type_node->token = (Token*) malloc(sizeof(Token));
-        *type_node->token = $1;
-
         if (is_int($1.content)) {
             default_return = strdup("0");
         } else if (is_float($1.content)) {
@@ -179,7 +175,7 @@ funDecl:
             $2.column, 
             0,
             $2.content,
-            type_node->token->content,
+            $1.content,
             1,
             param_qt,
             default_return
@@ -193,11 +189,6 @@ funDecl:
 
         function_type = strdup($1.content);
         function_name = strdup($2.content);
-
-        free(type_node->identifier);
-        free(type_node->return_type);
-        free(type_node->default_return);
-        free(type_node);
 
     } compoundStmt {
 
@@ -680,7 +671,7 @@ sumExp:
         *$$->token = $2; 
         $$->child_2 = $3;
 
-        if (!not_an_error($1->return_type) && !not_an_error($3->return_type)) { 
+        if (!not_an_error($1->return_type) || !not_an_error($3->return_type)) { 
             // para filtrar mensagens desnecessárias
         } else if (!is_simple_type($1->return_type, $3->return_type) ) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
@@ -706,7 +697,7 @@ sumExp:
         *$$->token = $2; 
         $$->child_2 = $3;
 
-        if (!not_an_error($1->return_type) && !not_an_error($3->return_type)) { 
+        if (!not_an_error($1->return_type) || !not_an_error($3->return_type)) { 
             // para filtrar mensagens desnecessárias
         } else if (!is_simple_type($1->return_type, $3->return_type)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
@@ -738,7 +729,7 @@ mulExp:
         *$$->token = $2; 
         $$->child_2 = $3;
 
-        if (!not_an_error($1->return_type) && !not_an_error($3->return_type)) { 
+        if (!not_an_error($1->return_type) || !not_an_error($3->return_type)) { 
             // para filtrar mensagens desnecessárias
         } else if (!is_simple_type($1->return_type, $3->return_type)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);

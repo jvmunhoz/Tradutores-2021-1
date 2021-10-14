@@ -283,13 +283,10 @@ void process_token() {
     prev_line = yylineno;
     prev_column = column;
 
-    int input_size = (strlen(yytext) + 1) * sizeof(char);
-
     yylval.token.line = yylineno;
     yylval.token.column = column;
     yylval.token.scope = peek_scope(scope_root);
-    yylval.token.content = (char*) malloc(input_size);
-    strcpy(yylval.token.content, yytext);
+    yylval.token.content = strdup(yytext);
 
     column += yyleng;
 }
@@ -305,24 +302,16 @@ void process_type_token() {
 
     char *ret;
 
-    int input_size;
-
     if ((ret = strstr(yytext, "int"))) {
-        input_size = (strlen("int list") + 1) * sizeof(char);
-
         yylval.token.line = yylineno;
         yylval.token.column = column;
         yylval.token.scope = peek_scope(scope_root);
-        yylval.token.content = (char*) malloc(input_size);
-        strcpy(yylval.token.content, "int list");
+        yylval.token.content = strdup("int list");
     } else {
-        input_size = (strlen("float list") + 1) * sizeof(char);
-
         yylval.token.line = yylineno;
         yylval.token.column = column;
         yylval.token.scope = peek_scope(scope_root);
-        yylval.token.content = (char*) malloc(input_size);
-        strcpy(yylval.token.content, "float list");
+        yylval.token.content = strdup("float list");
     }
 
     column += yyleng;
