@@ -141,7 +141,8 @@ varDecl:
             $2.content,
             type_node->token->content,
             0,
-            0   
+            0,
+            "none"   
         );
         position++;
     }
@@ -156,9 +157,27 @@ funDecl:
             semantic_errors++;
         }
 
+        char* default_return = NULL;
+
         Node* type_node = populate_node("Tipo da Função");
         type_node->token = (Token*) malloc(sizeof(Token));
         *type_node->token = $1;
+
+        if (is_int($1.content)) {
+            int return_size = (strlen("0") + 1) * sizeof(char);
+            default_return = (char*) malloc(sizeof(return_size));
+            strcpy(default_return, "0");
+        } else if (is_float($1.content)) {
+            int return_size = (strlen("0.0") + 1) * sizeof(char);
+            default_return = (char*) malloc(sizeof(return_size));
+            strcpy(default_return, "0.0");
+        } else if (is_int_list($1.content) || is_float_list($1.content)) {
+            int return_size = (strlen("NIL") + 1) * sizeof(char);
+            default_return = (char*) malloc(sizeof(return_size));
+            strcpy(default_return, "NIL");
+        } else {
+            default_return = strdup("error");
+        }
 
         pushSymbol (
             &symbol_root,
@@ -168,7 +187,8 @@ funDecl:
             $2.content,
             type_node->token->content,
             1,
-            param_qt 
+            param_qt,
+            default_return
         );
         param_qt = 0;
 
@@ -192,6 +212,24 @@ funDecl:
         *$$->token = $2;
         $$->child_2 = $4;
         $$->child_3 = $7;
+
+        if (is_int($1.content)) {
+            int return_size = (strlen("0") + 1) * sizeof(char);
+            $$->default_return = (char*) malloc(sizeof(return_size));
+            strcpy($$->default_return, "0");
+        } else if (is_float($1.content)) {
+            int return_size = (strlen("0.0") + 1) * sizeof(char);
+            $$->default_return = (char*) malloc(sizeof(return_size));
+            strcpy($$->default_return, "0.0");
+        } else if (is_int_list($1.content) || is_float_list($1.content)) {
+            int return_size = (strlen("NIL") + 1) * sizeof(char);
+            $$->default_return = (char*) malloc(sizeof(return_size));
+            strcpy($$->default_return, "NIL");
+        } else {
+            int return_size = (strlen("error") + 1) * sizeof(char);
+            $$->default_return = (char*) malloc(sizeof(return_size));
+            strcpy($$->default_return, "error");
+        }
 
         position++;
         is_return = 0;
@@ -242,7 +280,8 @@ paramTypeList:
             $2.content,
             type_node->token->content,
             0,
-            0   
+            0,
+            "none"  
         );
         position++;
         param_qt++;

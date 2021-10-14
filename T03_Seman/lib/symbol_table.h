@@ -13,10 +13,11 @@ typedef struct Symbol {
         char* type;
         int is_function;
         int param_qt;
+        char* default_return;
         struct Symbol* next_symbol;
 } Symbol;
 
-extern void pushSymbol(Symbol** symbol_root, int line, int column, int scope, char* ID, char* type, int is_function, int param_qt);
+extern void pushSymbol(Symbol** symbol_root, int line, int column, int scope, char* ID, char* type, int is_function, int param_qt, char* default_return);
 
 extern void popSymbol(Symbol** symbol_root);
 

@@ -18,6 +18,7 @@ typedef struct Node {
     char*  return_type;
     int cast_to_int;
     int cast_to_float;
+    char* default_return;
 } Node;
 
 extern Node* populate_node (char* identifier);
