@@ -22,5 +22,5 @@ int main() {
 
     write("A soma da idade de todos os 10 alunos é ");write(age);
     
-    // falta o return da função
+    return lst;
 }

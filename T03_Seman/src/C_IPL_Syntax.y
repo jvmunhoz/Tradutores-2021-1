@@ -27,9 +27,9 @@
     Symbol* symbol_root = NULL;
     int param_qt = 0;
     int param_call = 0;
-    char* function_type;
-    char* function_name;
-    char* call_name;
+    char* function_type = NULL;
+    char* function_name = NULL;
+    char* call_name = NULL;
     int param_locations = 0;
     Symbol* functions_symbol = NULL;
     int is_return = 0;
@@ -164,17 +164,11 @@ funDecl:
         *type_node->token = $1;
 
         if (is_int($1.content)) {
-            int return_size = (strlen("0") + 1) * sizeof(char);
-            default_return = (char*) malloc(sizeof(return_size));
-            strcpy(default_return, "0");
+            default_return = strdup("0");
         } else if (is_float($1.content)) {
-            int return_size = (strlen("0.0") + 1) * sizeof(char);
-            default_return = (char*) malloc(sizeof(return_size));
-            strcpy(default_return, "0.0");
+            default_return = strdup("0.0");
         } else if (is_int_list($1.content) || is_float_list($1.content)) {
-            int return_size = (strlen("NIL") + 1) * sizeof(char);
-            default_return = (char*) malloc(sizeof(return_size));
-            strcpy(default_return, "NIL");
+            default_return = strdup("NIL");
         } else {
             default_return = strdup("error");
         }
@@ -190,15 +184,20 @@ funDecl:
             param_qt,
             default_return
         );
+        position++;
         param_qt = 0;
 
-        int return_size = (strlen($1.content) + 1) * sizeof(char);
-        function_type = (char*) malloc(sizeof(return_size));
-        strcpy(function_type, $1.content);
+        if (function_type) free(function_type);
+        if (function_name) free(function_name);
+        free(default_return);
 
-        int return_size_2 = (strlen($2.content) + 1) * sizeof(char);
-        function_name = (char*) malloc(sizeof(return_size_2));
-        strcpy(function_name, $2.content);
+        function_type = strdup($1.content);
+        function_name = strdup($2.content);
+
+        free(type_node->identifier);
+        free(type_node->return_type);
+        free(type_node->default_return);
+        free(type_node);
 
     } compoundStmt {
 
@@ -214,24 +213,14 @@ funDecl:
         $$->child_3 = $7;
 
         if (is_int($1.content)) {
-            int return_size = (strlen("0") + 1) * sizeof(char);
-            $$->default_return = (char*) malloc(sizeof(return_size));
-            strcpy($$->default_return, "0");
+            $$->default_return = strdup("0");
         } else if (is_float($1.content)) {
-            int return_size = (strlen("0.0") + 1) * sizeof(char);
-            $$->default_return = (char*) malloc(sizeof(return_size));
-            strcpy($$->default_return, "0.0");
+            $$->default_return = strdup("0.0");
         } else if (is_int_list($1.content) || is_float_list($1.content)) {
-            int return_size = (strlen("NIL") + 1) * sizeof(char);
-            $$->default_return = (char*) malloc(sizeof(return_size));
-            strcpy($$->default_return, "NIL");
+            $$->default_return = strdup("NIL");
         } else {
-            int return_size = (strlen("error") + 1) * sizeof(char);
-            $$->default_return = (char*) malloc(sizeof(return_size));
-            strcpy($$->default_return, "error");
+            $$->default_return = strdup("error");
         }
-
-        position++;
         is_return = 0;
     }
 ;
@@ -451,10 +440,8 @@ exp:
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $1; 
         $$->child_1 = $3;
-
-        int return_size = (strlen(get_type(symbol_root, scope_root, scope_root, $1.content)) + 1) * sizeof(char);
-        $$->return_type = (char*) malloc(sizeof(return_size));
-        strcpy($$->return_type, get_type(symbol_root, scope_root, scope_root, $1.content));
+        free($$->return_type);
+        $$->return_type = strdup(get_type(symbol_root, scope_root, scope_root, $1.content));
 
         if (!symbol_exists(symbol_root, scope_root, scope_root, $1.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
@@ -501,16 +488,14 @@ exp:
 ;
 
 logExp:
-    logExp LOGOP unaryLogExp {
+    logExp LOGOP listExp {
         $$ = populate_node("Operação Lógica");
         $$->child_1 = $1;
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $2; 
-        $$->child_2 = $3;  
-
-        int return_size = (strlen("int") + 1) * sizeof(char);
-        $$->return_type = (char*) malloc(sizeof(return_size));
-        strcpy($$->return_type, "int");
+        $$->child_2 = $3;
+        free($$->return_type);
+        $$->return_type = strdup("int");
     }
     | listExp{
         $$ = $1;
@@ -547,16 +532,14 @@ listExp:
                 if (is_float($1->return_type)) {
                     $1->cast_to_int = 1;
                 }
-                int return_size = (strlen("int list") + 1) * sizeof(char);
-                $$->return_type = (char*) malloc(sizeof(return_size));
-                strcpy($$->return_type, "int list");
+                free($$->return_type);
+                $$->return_type = strdup("int list");
             } else if (is_float_list($3->return_type)) {
                 if (is_int($1->return_type)) {
                     $1->cast_to_float = 1;
                 }
-                int return_size = (strlen("float list") + 1) * sizeof(char);
-                $$->return_type = (char*) malloc(sizeof(return_size));
-                strcpy($$->return_type, "float list");
+                free($$->return_type);
+                $$->return_type = strdup("float list");
             }
         } else if ((strcmp($2.content, ">>") == 0)) {
             Symbol* functions_symbol = get_function(symbol_root, $1->token->content);
@@ -595,13 +578,11 @@ listExp:
                 printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo do parâmetro da função "RED"%s"REGULAR" deveria ser INT ou FLOAT, entretanto é "RED"%s"REGULAR"!\n", $1->token->content, param_symbol->type);
                 semantic_errors++;
             } else if (is_int($1->return_type)) {
-                int return_size = (strlen("int list") + 1) * sizeof(char);
-                $$->return_type = (char*) malloc(sizeof(return_size));
-                strcpy($$->return_type, "int list");
+                free($$->return_type);
+                $$->return_type = strdup("int list");
             } else if (is_float($1->return_type)) {
-                int return_size = (strlen("float list") + 1) * sizeof(char);
-                $$->return_type = (char*) malloc(sizeof(return_size));
-                strcpy($$->return_type, "float list");
+                free($$->return_type);
+                $$->return_type = strdup("float list");
             }
         } else if ((strcmp($2.content, "<<") == 0)) {
             Symbol* functions_symbol = get_function(symbol_root, $1->token->content);
@@ -640,13 +621,11 @@ listExp:
                 printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo do parâmetro da função "RED"%s"REGULAR" deveria ser INT ou FLOAT, entretanto é "RED"%s"REGULAR"!\n", $1->token->content, param_symbol->type);
                 semantic_errors++;
             } else if (is_int_list($3->return_type)) {
-                int return_size = (strlen("int list") + 1) * sizeof(char);
-                $$->return_type = (char*) malloc(sizeof(return_size));
-                strcpy($$->return_type, "int list");
+                free($$->return_type);
+                $$->return_type = strdup("int list");
             } else if (is_float_list($3->return_type)) {
-                int return_size = (strlen("float list") + 1) * sizeof(char);
-                $$->return_type = (char*) malloc(sizeof(return_size));
-                strcpy($$->return_type, "float list");
+                free($$->return_type);
+                $$->return_type = strdup("float list");
             }
         }
     }
@@ -662,10 +641,8 @@ relExp:
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $2; 
         $$->child_2 = $3;
-        
-        int return_size = (strlen("int") + 1) * sizeof(char);
-        $$->return_type = (char*) malloc(sizeof(return_size));
-        strcpy($$->return_type, "int");  
+        free($$->return_type);
+        $$->return_type = strdup("int");  
 
         if (is_simple_type($1->return_type, $3->return_type)) {            
             if (!is_same_type($1->return_type, $3->return_type) && is_float($1->return_type)) {
@@ -703,27 +680,22 @@ sumExp:
         *$$->token = $2; 
         $$->child_2 = $3;
 
-        if (not_an_error($1->return_type) || not_an_error($3->return_type)) { 
+        if (!not_an_error($1->return_type) && !not_an_error($3->return_type)) { 
             // para filtrar mensagens desnecessárias
-        } else if (!is_simple_type($1->return_type, $3->return_type) && (not_an_error($1->return_type) || not_an_error($3->return_type)) ) {
+        } else if (!is_simple_type($1->return_type, $3->return_type) ) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variáveis de uma soma devem ser do tipo INT ou FLOAT!\n");
             semantic_errors++;            
         } else if (is_same_type($1->return_type, $3->return_type)) {
-            int return_size = (strlen($1->return_type) + 1) * sizeof(char);
-            $$->return_type = (char*) malloc(sizeof(return_size));
-            strcpy($$->return_type, $1->return_type);
+            free($$->return_type);
+            $$->return_type = strdup($1->return_type);
         } else if (is_float($1->return_type)) {
-            int return_size = (strlen("float") + 1) * sizeof(char);
-            $$->return_type = (char*) malloc(sizeof(return_size));
-            strcpy($$->return_type, "float");
-
+            free($$->return_type);
+            $$->return_type = strdup("float");
             $3->cast_to_float = 1;
         } else if (is_float($3->return_type)) {
-            int return_size = (strlen("float") + 1) * sizeof(char);
-            $$->return_type = (char*) malloc(sizeof(return_size));
-            strcpy($$->return_type, "float");
-
+            free($$->return_type);
+            $$->return_type = strdup("float");
             $1->cast_to_float = 1;
         }
     }
@@ -734,27 +706,22 @@ sumExp:
         *$$->token = $2; 
         $$->child_2 = $3;
 
-        if (not_an_error($1->return_type) || not_an_error($3->return_type)) { 
+        if (!not_an_error($1->return_type) && !not_an_error($3->return_type)) { 
             // para filtrar mensagens desnecessárias
-        } else if (!is_simple_type($1->return_type, $3->return_type) && (not_an_error($1->return_type) || not_an_error($3->return_type))) {
+        } else if (!is_simple_type($1->return_type, $3->return_type)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variáveis de uma subtração devem ser do tipo INT ou FLOAT!\n");
             semantic_errors++;            
         } else if (is_same_type($1->return_type, $3->return_type)) {
-            int return_size = (strlen($1->return_type) + 1) * sizeof(char);
-            $$->return_type = (char*) malloc(sizeof(return_size));
-            strcpy($$->return_type, $1->return_type);
+            free($$->return_type);
+            $$->return_type = strdup($1->return_type);
         } else if (is_float($1->return_type)) {
-            int return_size = (strlen("float") + 1) * sizeof(char);
-            $$->return_type = (char*) malloc(sizeof(return_size));
-            strcpy($$->return_type, "float");
-
+            free($$->return_type);
+            $$->return_type = strdup("float");
             $3->cast_to_float = 1;
         } else if (is_float($3->return_type)) {
-            int return_size = (strlen("float") + 1) * sizeof(char);
-            $$->return_type = (char*) malloc(sizeof(return_size));
-            strcpy($$->return_type, "float");
-
+            free($$->return_type);
+            $$->return_type = strdup("float");
             $1->cast_to_float = 1;
         } 
     }
@@ -771,27 +738,22 @@ mulExp:
         *$$->token = $2; 
         $$->child_2 = $3;
 
-        if (not_an_error($1->return_type) || not_an_error($3->return_type)) { 
+        if (!not_an_error($1->return_type) && !not_an_error($3->return_type)) { 
             // para filtrar mensagens desnecessárias
-        } else if (!is_simple_type($1->return_type, $3->return_type) && (not_an_error($1->return_type) || not_an_error($3->return_type))) {
+        } else if (!is_simple_type($1->return_type, $3->return_type)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1->token->line, $1->token->column);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" Variáveis de uma multiplicação ou divisão devem ser do tipo INT ou FLOAT!\n");
             semantic_errors++;            
         } else if (is_same_type($1->return_type, $3->return_type)) {
-            int return_size = (strlen($1->return_type) + 1) * sizeof(char);
-            $$->return_type = (char*) malloc(sizeof(return_size));
-            strcpy($$->return_type, $1->return_type);
+            free($$->return_type);
+            $$->return_type = strdup($1->return_type);
         } else if (is_float($1->return_type)) {
-            int return_size = (strlen("float") + 1) * sizeof(char);
-            $$->return_type = (char*) malloc(sizeof(return_size));
-            strcpy($$->return_type, "float");
-
+            free($$->return_type);
+            $$->return_type = strdup("float");
             $3->cast_to_float = 1;
         } else if (is_float($3->return_type)) {
-            int return_size = (strlen("float") + 1) * sizeof(char);
-            $$->return_type = (char*) malloc(sizeof(return_size));
-            strcpy($$->return_type, "float");
-
+            free($$->return_type);
+            $$->return_type = strdup("float");
             $1->cast_to_float = 1;
         }
     }
@@ -813,23 +775,19 @@ unaryListExp:
             semantic_errors++;            
         } else if ((strcmp($1.content, "?") == 0)) {
             if (is_int_list($2->return_type)) {
-                int return_size = (strlen("int") + 1) * sizeof(char);
-                $$->return_type = (char*) malloc(sizeof(return_size));
-                strcpy($$->return_type, "int");
+                free($$->return_type);
+                $$->return_type = strdup("int");
             } else if (is_float_list($2->return_type)){
-                int return_size = (strlen("float") + 1) * sizeof(char);
-                $$->return_type = (char*) malloc(sizeof(return_size));
-                strcpy($$->return_type, "float");
+                free($$->return_type);
+                $$->return_type = strdup("float");
             }
         } else if (strcmp($1.content, "%") == 0) {
             if (is_int_list($2->return_type)) {
-                int return_size = (strlen("int list") + 1) * sizeof(char);
-                $$->return_type = (char*) malloc(sizeof(return_size));
-                strcpy($$->return_type, "int list");
+                free($$->return_type);
+                $$->return_type = strdup("int list");
             } else if (is_float_list($2->return_type)){
-                int return_size = (strlen("float list") + 1) * sizeof(char);
-                $$->return_type = (char*) malloc(sizeof(return_size));
-                strcpy($$->return_type, "float list");
+                free($$->return_type);
+                $$->return_type = strdup("float list");
             }
         }
     }
@@ -848,13 +806,11 @@ unaryLogExp:
             $$->child_1 = $2;
 
             if (is_int_list($2->return_type)) {
-                int return_size = (strlen("int list") + 1) * sizeof(char);
-                $$->return_type = (char*) malloc(sizeof(return_size));
-                strcpy($$->return_type, "int list");
+                free($$->return_type);
+                $$->return_type = strdup("int list");
             } else if (is_float_list($2->return_type)){
-                int return_size = (strlen("float list") + 1) * sizeof(char);
-                $$->return_type = (char*) malloc(sizeof(return_size));
-                strcpy($$->return_type, "float list");
+                free($$->return_type);
+                $$->return_type = strdup("float list");
             }
 
         } else {
@@ -862,10 +818,8 @@ unaryLogExp:
             $$->token = (Token*) malloc(sizeof(Token));
             *$$->token = $1; 
             $$->child_1 = $2;
-
-            int return_size = (strlen("int") + 1) * sizeof(char);
-            $$->return_type = (char*) malloc(sizeof(return_size));
-            strcpy($$->return_type, "int");
+            free($$->return_type);
+            $$->return_type = strdup("int");
         }  
     }
     | unaryExp{
@@ -885,13 +839,11 @@ unaryExp:
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O operando deve ser do tipo INT ou FLOAT!\n");
             semantic_errors++;            
         } else if (is_int($2->return_type)) {
-            int return_size = (strlen("int") + 1) * sizeof(char);
-            $$->return_type = (char*) malloc(sizeof(return_size));
-            strcpy($$->return_type, "int");
+            free($$->return_type);
+            $$->return_type = strdup("int");
         } else if (is_float($2->return_type)) {
-            int return_size = (strlen("float") + 1) * sizeof(char);
-            $$->return_type = (char*) malloc(sizeof(return_size));
-            strcpy($$->return_type, "float");
+            free($$->return_type);
+            $$->return_type = strdup("float");
         } 
     }
     | factor {
@@ -920,19 +872,17 @@ factor:
         $$ = populate_node("ID");
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $1;
-
-        int return_size = (strlen(get_type(symbol_root, scope_root, scope_root, $1.content)) + 1) * sizeof(char);
-        $$->return_type = (char*) malloc(sizeof(return_size));
-        strcpy($$->return_type, get_type(symbol_root, scope_root, scope_root, $1.content));
+        free($$->return_type);
+        $$->return_type = strdup(get_type(symbol_root, scope_root, scope_root, $1.content));
     }
 ;
 
 call:
     ID {
 
-        int return_size = (strlen($1.content) + 1) * sizeof(char);
-        call_name = (char*) malloc(sizeof(return_size));
-        strcpy(call_name, $1.content);
+        if (call_name) free(call_name);
+
+        call_name = strdup($1.content);
 
         if (!symbol_exists(symbol_root, scope_root, scope_root, $1.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
@@ -966,10 +916,9 @@ call:
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $1;
         $$->child_1 = $4;
+        free($$->return_type);
+        $$->return_type = strdup(get_type(symbol_root, scope_root, scope_root, $1.content));
 
-        int return_size = (strlen(get_type(symbol_root, scope_root, scope_root, $1.content)) + 1) * sizeof(char);
-        $$->return_type = (char*) malloc(sizeof(return_size));
-        strcpy($$->return_type, get_type(symbol_root, scope_root, scope_root, $1.content));
         param_call = 0;  
     }
 ;
@@ -1049,28 +998,22 @@ constant:
         $$ = populate_node("Int");
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $1;
-
-        int return_size = (strlen("int") + 1) * sizeof(char);
-        $$->return_type = (char*) malloc(sizeof(return_size));
-        strcpy($$->return_type, "int");  
+        free($$->return_type);
+        $$->return_type = strdup("int"); 
     }
     | FLOAT {
         $$ = populate_node("Float");
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $1;
-
-        int return_size = (strlen("float") + 1) * sizeof(char);
-        $$->return_type = (char*) malloc(sizeof(return_size));
-        strcpy($$->return_type, "float");
+        free($$->return_type);
+        $$->return_type = strdup("float");
     }
     | NIL {
         $$ = populate_node("NIL");
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $1;
-
-        int return_size = (strlen("NIL") + 1) * sizeof(char);
-        $$->return_type = (char*) malloc(sizeof(return_size));
-        strcpy($$->return_type, "NIL");
+        free($$->return_type);
+        $$->return_type = strdup("NIL");
     }
 ;
 
@@ -1101,9 +1044,9 @@ int main(int argc, char *argv[]){
                 popSymbol(&symbol_root);
             }
             pop_scope(&scope_root);
-            printf("\nOpa, foram encontrados "RED"%d"REGULAR" erros semânticos no arquivo!\n", semantic_errors);
+            if (semantic_errors) printf("\nOpa, foram encontrados "RED"%d"REGULAR" erros semânticos no arquivo!\n", semantic_errors);
         } else {
-            printf("\nOpa, foram encontrados "RED"%d"REGULAR" erros no arquivo. A árvore abstrata não será mostrada caso haja erros léxicos ou sintáticos!\n\n", lex_sint_errors);
+            printf("\nOpa, foram encontrados "RED"%d"REGULAR" erros no arquivo. A árvore abstrata não será mostrada caso haja erros léxicos ou sintáticos!\n\n", lex_sint_errors + semantic_errors);
             print_table_header();
             for (int i = 0; i < position; i++) { 
                 print_symbol(symbol_root);
@@ -1117,6 +1060,9 @@ int main(int argc, char *argv[]){
         printf("Argumento inválido ou inexistente. Tenha certeza que o caminho do arquivo passado como argumento está certo!\n");
         exit(0);
     }
+    if (function_type) free(function_type);
+    if (function_name) free(function_name);
+    if (call_name) free(call_name);
     fclose(yyin);
     yylex_destroy();
     return 0;

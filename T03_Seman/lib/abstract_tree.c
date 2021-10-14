@@ -13,12 +13,9 @@
 
 extern Node* populate_node (char* identifier) {
     int node_size = (sizeof(Node));
-    int str_size = (strlen(identifier) + 1) * sizeof(char);
     
     Node* node = (Node*) malloc(node_size);
-    node->identifier = (char*) malloc(str_size);
-     
-    strcpy(node->identifier, identifier);
+    node->identifier = strdup(identifier);
     node->child_1 = NULL;
     node->child_2 = NULL;
     node->child_3 = NULL;
@@ -27,10 +24,7 @@ extern Node* populate_node (char* identifier) {
     node->cast_to_int = 0;
     node->cast_to_float = 0;
     node->default_return = NULL;
-
-    int return_size = (strlen("undefined") + 1) * sizeof(char);
-    node->return_type = (char*) malloc(sizeof(return_size));
-    strcpy(node->return_type, "undefined");
+    node->return_type = strdup("undefined");
 
     return node;
 }
@@ -141,10 +135,8 @@ extern void print_node(Node* tree_node, int nivel) {
     if (tree_node->token) {
         free(tree_node->token->content);
     }
-    if (tree_node->default_return) {
-        free(tree_node->default_return);
-    }
-    free(tree_node->token);
     free(tree_node->return_type);
+    free(tree_node->default_return);
+    free(tree_node->token);
     free(tree_node);
 }

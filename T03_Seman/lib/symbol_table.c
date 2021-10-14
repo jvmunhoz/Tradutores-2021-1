@@ -18,23 +18,16 @@ extern Symbol* populate_symbol_table (
     int line, int column, int scope, char* ID, char* type, int is_function, int param_qt, char* default_return
     ) {
     int symbol_size = (sizeof(Symbol));
-    int str_size = (strlen(ID) + 1) * sizeof(char);
-    int str_size_2 = (strlen(type) + 1) * sizeof(char);
-    int str_size_3 = (strlen(default_return) + 1) * sizeof(char);
-    
     Symbol* symbol = (Symbol*) malloc(symbol_size);
-    symbol->ID = (char*) malloc(str_size);
-    symbol->type = (char*) malloc(str_size_2);
-    symbol->default_return = (char*) malloc(str_size_3);
     
     symbol->line = line;
     symbol->column = column;
     symbol->scope = scope;
-    strcpy(symbol->ID, ID);
-    strcpy(symbol->type, type);
+    symbol->ID = strdup(ID);
+    symbol->type = strdup(type);
     symbol->is_function = is_function;
     symbol->param_qt = param_qt;
-    strcpy(symbol->default_return, default_return);
+    symbol->default_return = strdup(default_return);
     symbol->next_symbol = NULL;
 
     return symbol;
@@ -60,6 +53,7 @@ extern void popSymbol(Symbol** symbol_root) {
 
     free(symbol_root2->ID);
     free(symbol_root2->type);
+    free(symbol_root2->default_return);
     free(symbol_root2);
     return;
 }
