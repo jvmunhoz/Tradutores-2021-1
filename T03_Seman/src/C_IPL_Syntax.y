@@ -180,11 +180,11 @@ funDecl:
 
     } compoundStmt {
 
-        if (is_return == 0) {
-            printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $2.line, $2.column);
-            printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo da função "RED"%s"REGULAR" é "RED"%s"REGULAR", entretanto não há retorno na função\n", $2.content, $1.content);
-            errors++;
-        }
+      //  if (is_return == 0) {
+        //    printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $2.line, $2.column);
+        //    printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" O tipo da função "RED"%s"REGULAR" é "RED"%s"REGULAR", entretanto não há retorno na função\n", $2.content, $1.content);
+           // errors++;
+       // }
 
         Node* type_node = populate_node("Tipo da Função");
         type_node->token = (Token*) malloc(sizeof(Token));
@@ -251,6 +251,7 @@ paramTypeList:
         position++;
         param_qt++;
     }
+    | error { populate_node("Erro"); }
 ;
 
 stmt:
@@ -323,6 +324,8 @@ ifStmt:
         $$->child_2 = $5;
         $$->child_3 = $7;
     }
+    | KW_IF '(' error ')' stmt %prec THEN { populate_node("Erro"); }
+    | KW_IF '(' error ')' stmt KW_ELSE stmt { populate_node("Erro"); }
 ;
 
 forStmt:
@@ -333,6 +336,7 @@ forStmt:
         $$->child_3 = $7;
         $$->child_4 = $9;
     }
+    | KW_FOR '(' error ')' stmt { populate_node("Erro"); }
 ;
 
 returnStmt:
@@ -366,7 +370,7 @@ returnStmt:
 ;
 
 readFunc:
-    READ '(' ID ')' {
+    READ '(' ID ')' ';'{
 
         if (!symbol_exists(symbol_root, scope_root, scope_root, $3.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $3.line, $3.column);
@@ -385,13 +389,13 @@ readFunc:
 ;
 
 writeFunc:
-    WRITE '(' logExp ')' {
+    WRITE '(' logExp ')' ';'{
         $$ = populate_node("Escrita de uma Expressão");
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $1;
         $$->child_1 = $3; 
     }
-    | WRITE '(' STRING ')' {
+    | WRITE '(' STRING ')' ';'{
 
         Node* string_node = populate_node("String");
         string_node->token = (Token*) malloc(sizeof(Token));
