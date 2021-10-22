@@ -352,6 +352,10 @@ forStmt:
         $$->child_4 = $9;
     }
     | KW_FOR '(' error ')' stmt { populate_node("Erro"); }
+    | KW_FOR '(' error ';' exp ';' exp ')' stmt { populate_node("Erro"); }
+    | KW_FOR '(' exp ';' error ';' exp ')' stmt { populate_node("Erro"); }
+    | KW_FOR '(' exp ';' exp ';' error ')' stmt { populate_node("Erro"); }
+;
 ;
 
 returnStmt:
@@ -402,6 +406,7 @@ readFunc:
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $3; 
     }
+    | READ error ';' { populate_node("Erro"); }
 ;
 
 writeFunc:
@@ -422,6 +427,7 @@ writeFunc:
         *$$->token = $1;
         $$->child_1 = string_node; 
     }
+    | WRITE error ';' { populate_node("Erro"); }
 ;
 
 exp:
