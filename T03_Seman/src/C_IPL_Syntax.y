@@ -352,10 +352,6 @@ forStmt:
         $$->child_4 = $9;
     }
     | KW_FOR '(' error ')' stmt { populate_node("Erro"); }
-    | KW_FOR '(' error ';' exp ';' exp ')' stmt { populate_node("Erro"); }
-    | KW_FOR '(' exp ';' error ';' exp ')' stmt { populate_node("Erro"); }
-    | KW_FOR '(' exp ';' exp ';' error ')' stmt { populate_node("Erro"); }
-;
 ;
 
 returnStmt:
