@@ -15,3 +15,19 @@ T03_Seman/tests/toTest.c
 T03_Seman/tests/test.c
 
 T03_Seman/logfile.out
+
+T04_TAC/src/lex.yy.c
+
+T04_TAC/src/C_IPL_Syntax.tab.c
+
+T04_TAC/src/C_IPL_Syntax.tab.h
+
+T04_TAC/tradutor
+
+T04_TAC/tests/helloWorld.c
+
+T04_TAC/tests/toTest.c
+
+T04_TAC/tests/test.c
+
+T04_TAC/logfile.out
