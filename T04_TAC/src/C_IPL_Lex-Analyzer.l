@@ -26,6 +26,7 @@
     int declaration;
     int comment_line = 0;
     int first_time = 0;
+    int will_pop = 0;
 %}
 
 DIGIT       [0-9]
@@ -78,11 +79,19 @@ ID          [A-Za-z_][A-Za-z0-9_]*
 
 [ \t]+ {
     column += yyleng;
+    if (will_pop == 1) {
+        pop_scope(&scope_root);
+        will_pop = 0;
+    }
 }
 
 \n {
     yylineno++;
     column = 1;
+    if (will_pop == 1) {
+        pop_scope(&scope_root);
+        will_pop = 0;
+    }
 }
 
 {TYPE} {
@@ -210,6 +219,10 @@ ID          [A-Za-z_][A-Za-z0-9_]*
         scope--;
         open = 0;
     }
+    if (will_pop == 1) {
+        pop_scope(&scope_root);
+        will_pop = 0;
+    }
     return ';';
 }
 
@@ -233,7 +246,7 @@ ID          [A-Za-z_][A-Za-z0-9_]*
 }
 
 "}" {
-    pop_scope(&scope_root);
+    will_pop = 1;
     return '}';
 }
 

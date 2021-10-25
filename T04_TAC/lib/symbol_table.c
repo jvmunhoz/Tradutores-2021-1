@@ -14,17 +14,29 @@
 #define YELLOW "\033[1;33:40m"
 #define REGULAR "\033[0m"
 
+extern int var_count;
+
 extern Symbol* populate_symbol_table (
     int line, int column, int scope, char* ID, char* type, int is_function, int param_qt, char* default_return
     ) {
     int symbol_size = (sizeof(Symbol));
     Symbol* symbol = (Symbol*) malloc(symbol_size);
-    
+
+    char str[4] = "v";
+    char str2[3];
+
+    if (is_function != 1) {
+        sprintf(str2, "%d", var_count);
+        strncat(str, str2, 3);
+        var_count++;
+    }
+
     symbol->line = line;
     symbol->column = column;
     symbol->scope = scope;
     symbol->ID = strdup(ID);
     symbol->type = strdup(type);
+    symbol->tac_name = strdup(str);
     symbol->is_function = is_function;
     symbol->param_qt = param_qt;
     symbol->default_return = strdup(default_return);
@@ -54,6 +66,7 @@ extern void popSymbol(Symbol** symbol_root) {
     free(symbol_root2->ID);
     free(symbol_root2->type);
     free(symbol_root2->default_return);
+    free(symbol_root2->tac_name);
     free(symbol_root2);
     return;
 }
@@ -128,6 +141,26 @@ extern Symbol* get_function(Symbol* symbol_root, char* name) {
     }
 
     return NULL;
+}
+
+extern char* get_tac_name(Symbol* symbol_root, StackNode* scope_root, StackNode* scope_root_copy, char* name) {
+    if (is_empty_symbol(symbol_root)) return NULL;
+
+    if (symbol_root->scope > peek_scope(scope_root)) {
+        return get_tac_name(symbol_root->next_symbol, scope_root, scope_root_copy, name);
+    } else if (symbol_root->scope < peek_scope(scope_root)) {
+        return get_tac_name(symbol_root, scope_root->next_scope, scope_root_copy, name);
+    }
+
+    if (strcmp(symbol_root->ID, name) != 0) {
+        return get_tac_name(symbol_root->next_symbol, scope_root_copy, scope_root_copy, name);
+    }
+
+    if (strcmp(symbol_root->ID, name) == 0) {
+        return symbol_root->tac_name;
+    }
+
+    return get_tac_name(symbol_root->next_symbol, scope_root_copy, scope_root_copy, name);
 }
 
 extern int param_location(Symbol* symbol_root, int return_value) {

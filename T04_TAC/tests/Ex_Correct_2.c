@@ -1,24 +1,19 @@
-int i;
-int count;
+int main () {
 
-int main() {
-    int list lst;
-    int age;
+    int c;
 
-    lst = NIL;
+    c = 10;
 
-    count = 10;
-    for (i = 0; i < count; i = i + 1) {
-        writeln("Digite a idade de um aluno!");
-        read(age);
-        lst = age : lst;
-    }
+    c = c * 5;
 
-    for (i = 0; i < count; i = i + 1) {
-        age = (age + (?lst));
-    }
+    writeln(c);
 
-    write("A soma da idade de todos os 10 alunos é ");write(age);
-    
-    return 0;
+    int d;
+
+    d = 10;
+
+    d = d / 5;
+
+    writeln(d);
+
 }

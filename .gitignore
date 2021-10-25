@@ -31,3 +31,5 @@ T04_TAC/tests/toTest.c
 T04_TAC/tests/test.c
 
 T04_TAC/logfile.out
+
+T04_TAC/tests/*.tac

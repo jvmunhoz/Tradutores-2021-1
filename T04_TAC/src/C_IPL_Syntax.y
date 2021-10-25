@@ -8,6 +8,7 @@
     #include "../lib/abstract_tree.h"
     #include "../lib/symbol_table.h"
     #include "../lib/scope_stack.h"
+    #include "../lib/tac.h"
     #define BLUE "\033[1;34:40m"
     #define RED "\033[1;31:40m"
     #define GREEN "\033[1;32:40m"
@@ -20,6 +21,8 @@
     extern int prev_column;
     extern int lex_sint_errors;
     extern FILE *yyin;
+    FILE *table_file;
+    FILE *code_file;
     Node* abstract_tree;
     int position = 0; 
     int scope = 0;
@@ -29,12 +32,15 @@
     int param_call = 0;
     char* function_type = NULL;
     char* function_name = NULL;
+    char* arith_exp = NULL;
+    char* arith_exp2 = NULL;
     char* call_name = NULL;
     int param_locations = 0;
     Symbol* functions_symbol = NULL;
     int is_return = 0;
     int function_call = 0;
     int semantic_errors = 0;
+    int var_count = 0;
 %}
 
 %union{
@@ -145,6 +151,14 @@ varDecl:
             "none"   
         );
         position++;
+
+        if (strcmp($1.content, "int") == 0) {
+            fprintf(table_file, "%s %s = %d\n", $1.content, symbol_root->tac_name, 0);
+        }
+
+        if (strcmp($1.content, "float") == 0) {
+            fprintf(table_file, "%s %s = %f\n", $1.content, symbol_root->tac_name, 0.0);
+        }
     }
 ;
 
@@ -189,6 +203,8 @@ funDecl:
 
         function_type = strdup($1.content);
         function_name = strdup($2.content);
+
+        fprintf(code_file, "\n%s:\n\n", $2.content);
 
     } compoundStmt {
 
@@ -259,12 +275,20 @@ paramTypeList:
             $2.scope,
             $2.content,
             type_node->token->content,
-            0,
+            2,
             0,
             "none"  
         );
         position++;
         param_qt++;
+
+        if (strcmp($1.content, "int") == 0) {
+            fprintf(table_file, "%s %s = %d\n", $1.content, symbol_root->tac_name, 0);
+        }
+
+        if (strcmp($1.content, "float") == 0) {
+            fprintf(table_file, "%s %s = %f\n", $1.content, symbol_root->tac_name, 0.0);
+        }
     }
     | error { populate_node("Erro"); }
 ;
@@ -411,6 +435,13 @@ writeFunc:
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $1;
         $$->child_1 = $3; 
+
+        if (strcmp($1.content, "write") == 0) {
+            fprintf(code_file, "print %s\n", get_tac_name(symbol_root, scope_root, scope_root, $$->child_1->token->content));
+        }
+        if (strcmp($1.content, "writeln") == 0) {
+            fprintf(code_file, "println %s\n", get_tac_name(symbol_root, scope_root, scope_root, $$->child_1->token->content));
+        }
     }
     | WRITE '(' STRING ')' ';'{
 
@@ -435,6 +466,27 @@ exp:
         $$->child_1 = $3;
         free($$->return_type);
         $$->return_type = strdup(get_type(symbol_root, scope_root, scope_root, $1.content));
+
+
+        if ($$->child_1->token) {
+            if (strcmp($$->child_1->identifier, "Int") == 0 || strcmp($$->child_1->identifier, "Float") == 0) {
+                fprintf(code_file, "mov %s, %s\n", get_tac_name(symbol_root, scope_root, scope_root, $1.content), $$->child_1->token->content);
+            }
+            if (strcmp($$->child_1->identifier, "Operação de Soma") == 0) {
+                fprintf(code_file, "add %s, %s, %s\n", get_tac_name(symbol_root, scope_root, scope_root, $1.content), arith_exp, arith_exp2);
+            }
+            if (strcmp($$->child_1->identifier, "Operação de Subtração") == 0) {
+                fprintf(code_file, "sub %s, %s, %s\n", get_tac_name(symbol_root, scope_root, scope_root, $1.content), arith_exp, arith_exp2);
+            }
+            if (strcmp($$->child_1->identifier, "Operação de Multiplicação") == 0) {
+                if (strcmp($$->child_1->token->content, "*") == 0) {
+                    fprintf(code_file, "mul %s, %s, %s\n", get_tac_name(symbol_root, scope_root, scope_root, $1.content), arith_exp, arith_exp2);
+                } else if (strcmp($$->child_1->token->content, "/") == 0) {
+                    fprintf(code_file, "div %s, %s, %s\n", get_tac_name(symbol_root, scope_root, scope_root, $1.content), arith_exp, arith_exp2);
+                }
+                
+            }
+        }
 
         if (!symbol_exists(symbol_root, scope_root, scope_root, $1.content)) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", $1.line, $1.column);
@@ -673,6 +725,18 @@ sumExp:
         *$$->token = $2; 
         $$->child_2 = $3;
 
+        if (arith_exp) free(arith_exp);
+        if (arith_exp2) free(arith_exp2);
+
+        if ($$->child_1->token && $$->child_2->token) {
+            if (symbol_exists(symbol_root, scope_root, scope_root, $$->child_1->token->content)) {
+                arith_exp = strdup(get_tac_name(symbol_root, scope_root, scope_root, $$->child_1->token->content));
+            } else arith_exp = strdup($$->child_1->token->content);
+            if (symbol_exists(symbol_root, scope_root, scope_root, $$->child_2->token->content)) {
+                arith_exp2 = strdup(get_tac_name(symbol_root, scope_root, scope_root, $$->child_2->token->content));
+            } else arith_exp2 = strdup($$->child_2->token->content);
+        }
+
         if (!not_an_error($1->return_type) || !not_an_error($3->return_type)) { 
             // para filtrar mensagens desnecessárias
         } else if (!is_simple_type($1->return_type, $3->return_type) ) {
@@ -698,6 +762,18 @@ sumExp:
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $2; 
         $$->child_2 = $3;
+
+        if (arith_exp) free(arith_exp);
+        if (arith_exp2) free(arith_exp2);
+
+        if ($$->child_1->token && $$->child_2->token) {
+            if (symbol_exists(symbol_root, scope_root, scope_root, $$->child_1->token->content)) {
+                arith_exp = strdup(get_tac_name(symbol_root, scope_root, scope_root, $$->child_1->token->content));
+            } else arith_exp = strdup($$->child_1->token->content);
+            if (symbol_exists(symbol_root, scope_root, scope_root, $$->child_2->token->content)) {
+                arith_exp2 = strdup(get_tac_name(symbol_root, scope_root, scope_root, $$->child_2->token->content));
+            } else arith_exp2 = strdup($$->child_2->token->content);
+        }
 
         if (!not_an_error($1->return_type) || !not_an_error($3->return_type)) { 
             // para filtrar mensagens desnecessárias
@@ -730,6 +806,18 @@ mulExp:
         $$->token = (Token*) malloc(sizeof(Token));
         *$$->token = $2; 
         $$->child_2 = $3;
+
+        if (arith_exp) free(arith_exp);
+        if (arith_exp2) free(arith_exp2);
+
+        if ($$->child_1->token && $$->child_2->token) {
+            if (symbol_exists(symbol_root, scope_root, scope_root, $$->child_1->token->content)) {
+                arith_exp = strdup(get_tac_name(symbol_root, scope_root, scope_root, $$->child_1->token->content));
+            } else arith_exp = strdup($$->child_1->token->content);
+            if (symbol_exists(symbol_root, scope_root, scope_root, $$->child_2->token->content)) {
+                arith_exp2 = strdup(get_tac_name(symbol_root, scope_root, scope_root, $$->child_2->token->content));
+            } else arith_exp2 = strdup($$->child_2->token->content);
+        }
 
         if (!not_an_error($1->return_type) || !not_an_error($3->return_type)) { 
             // para filtrar mensagens desnecessárias
@@ -1020,6 +1108,10 @@ extern void yyerror(const char* e) {
 
 int main(int argc, char *argv[]){
     yyin = fopen(argv[1], "r");
+    table_file = fopen("table.tac", "w+");
+    fprintf(table_file, ".table\n");
+    code_file = fopen("code.tac", "w+");
+    fprintf(code_file, ".code\n");
     argc++;
     if(yyin){
         yyparse();
@@ -1030,6 +1122,17 @@ int main(int argc, char *argv[]){
         }
         if (lex_sint_errors == 0) {
             printf("\n");
+            if (semantic_errors) {
+                printf("\nOpa, foram encontrados "RED"%d"REGULAR" erros semânticos no arquivo!\n", semantic_errors);
+            } else {
+                fclose(table_file);
+                fclose(code_file);
+                char* temp = strdup(argv[1]);
+                compile_file(temp);
+                if (arith_exp) free(arith_exp);
+                if (arith_exp2) free(arith_exp2);
+                free(temp);
+            }
             print_node(abstract_tree, 1);
             print_table_header();
             for (int i = 0; i < position; i++) { 
@@ -1037,7 +1140,6 @@ int main(int argc, char *argv[]){
                 popSymbol(&symbol_root);
             }
             pop_scope(&scope_root);
-            if (semantic_errors) printf("\nOpa, foram encontrados "RED"%d"REGULAR" erros semânticos no arquivo!\n", semantic_errors);
         } else {
             printf("\nOpa, foram encontrados "RED"%d"REGULAR" erros no arquivo. A árvore abstrata não será mostrada caso haja erros léxicos ou sintáticos!\n\n", lex_sint_errors + semantic_errors);
             print_table_header();
@@ -1057,6 +1159,8 @@ int main(int argc, char *argv[]){
     if (function_name) free(function_name);
     if (call_name) free(call_name);
     fclose(yyin);
+    remove("table.tac");
+    remove("code.tac");
     yylex_destroy();
     return 0;
 }

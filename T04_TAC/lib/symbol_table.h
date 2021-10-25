@@ -11,6 +11,7 @@ typedef struct Symbol {
         int scope;
         char* ID;
         char* type;
+        char* tac_name;
         int is_function;
         int param_qt;
         char* default_return;
@@ -20,6 +21,8 @@ typedef struct Symbol {
 extern void pushSymbol(Symbol** symbol_root, int line, int column, int scope, char* ID, char* type, int is_function, int param_qt, char* default_return);
 
 extern void popSymbol(Symbol** symbol_root);
+
+int is_empty_symbol(Symbol* symbol_root);
 
 extern int symbol_exists(Symbol* symbol_root, StackNode* scope_root, StackNode* scope_root_copy, char* name);
 
@@ -32,6 +35,8 @@ extern Symbol* get_function(Symbol* symbol_root, char* name);
 extern int param_location(Symbol* symbol_root, int return_value);
 
 extern Symbol* get_param(Symbol* symbol_root, int param_location);
+
+extern char* get_tac_name(Symbol* symbol_root, StackNode* scope_root, StackNode* scope_root_copy, char* name);
 
 extern int symbol_int(Symbol* symbol_root, StackNode* scope_root, char* name);
 

@@ -15,9 +15,11 @@ run:
 
 run_correct_1:
 	./tradutor tests/Ex_Correct_1.c
+	./tac -vds tests/Ex_Correct_1.tac
 
 run_correct_2:
 	./tradutor tests/Ex_Correct_2.c
+	./tac -vds tests/Ex_Correct_2.tac
 
 run_incorrect_1:
 	./tradutor tests/Ex_Incorrect_1.c
@@ -33,3 +35,9 @@ clean:
 
 memleak:
 	valgrind -v --tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes --log-file="logfile.out" ./tradutor tests/Ex_Correct_0.c
+
+tac_1:
+	./tac -vds tests/Ex_Correct_1.tac
+
+tac_2:
+	./tac -vds tests/Ex_Correct_2.tac
