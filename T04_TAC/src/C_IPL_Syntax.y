@@ -1115,7 +1115,7 @@ int main(int argc, char *argv[]){
     argc++;
     if(yyin){
         yyparse();
-        if (!symbol_exists(symbol_root, scope_root, scope_root, "main")) {
+        if (!get_function(symbol_root, "main")) {
             printf("|Linha: "GREEN"%d"REGULAR"\t|Coluna: "GREEN"%d"REGULAR"\t| ", 0, 0);
             printf(""RED"ERRO SEMÂNTICO ---> "REGULAR" A função "RED"main"REGULAR" não foi declarada!\n");
             semantic_errors++;
