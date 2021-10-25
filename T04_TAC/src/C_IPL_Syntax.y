@@ -1140,6 +1140,7 @@ int main(int argc, char *argv[]){
                 popSymbol(&symbol_root);
             }
             pop_scope(&scope_root);
+            pop_scope(&scope_root);
         } else {
             printf("\nOpa, foram encontrados "RED"%d"REGULAR" erros no arquivo. A árvore abstrata não será mostrada caso haja erros léxicos ou sintáticos!\n\n", lex_sint_errors + semantic_errors);
             print_table_header();
@@ -1147,6 +1148,7 @@ int main(int argc, char *argv[]){
                 print_symbol(symbol_root);
                 popSymbol(&symbol_root);
             }
+            pop_scope(&scope_root);
             pop_scope(&scope_root);
             printf("\n");
         }
