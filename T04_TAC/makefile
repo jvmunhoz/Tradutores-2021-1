@@ -10,9 +10,6 @@ compile:
 test:
 	./tradutor tests/test.c
 
-run:
-	./tradutor tests/Ex_Correct_0.c
-
 run_correct_1:
 	./tradutor tests/Ex_Correct_1.c
 	./tac -vds tests/Ex_Correct_1.tac
@@ -34,7 +31,7 @@ clean:
 	rm -f src/C_IPL_Syntax.tab.c src/C_IPL_Syntax.tab.h src/lex.yy.c tradutor logfile.out
 
 memleak:
-	valgrind -v --tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes --log-file="logfile.out" ./tradutor tests/Ex_Correct_0.c
+	valgrind -v --tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes --log-file="logfile.out" ./tradutor tests/Ex_Correct_1.c
 
 tac_1:
 	./tac -vds tests/Ex_Correct_1.tac
