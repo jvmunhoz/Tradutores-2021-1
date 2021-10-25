@@ -2,7 +2,7 @@ flex:
 	flex -o src/lex.yy.c src/C_IPL_Lex-Analyzer.l
 
 bison:
-	bison -d -o src/C_IPL_Syntax.tab.c src/C_IPL_Syntax.y -Wcounterexamples
+	bison -d -o src/C_IPL_Syntax.tab.c src/C_IPL_Syntax.y -Wcounterexamples -Wall
 
 compile:
 	gcc -o tradutor src/C_IPL_Syntax.tab.c src/lex.yy.c lib/*.c -g -Wall -Wextra -Wpedantic

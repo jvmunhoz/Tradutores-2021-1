@@ -55,9 +55,9 @@
 %token <token> BIN_LISTOP RELOP ASSIGN
 %token <token> KW_IF KW_FOR KW_RETURN
 %token <token> ';' '(' ')' '{' '}' ','
-%right <token> EXCLAM UN_LISTOP
+%token <token> EXCLAM UN_LISTOP
 %right <token> KW_ELSE THEN
-%left  <token> SUMOP MULOP LOGOP
+%token <token> SUMOP MULOP LOGOP
 
 %type <node> program
 %type <node> declList
@@ -236,7 +236,7 @@ params:
     paramList {
        $$ = $1; 
     }
-    | {$$ = NULL;}
+    | %empty {$$ = NULL;}
 ;
 
 paramList:
@@ -1008,7 +1008,7 @@ args:
     argList {
        $$ = $1; 
     }
-    | {$$ = NULL;}
+    | %empty {$$ = NULL;}
 ;
 
 argList:
