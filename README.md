@@ -18,3 +18,7 @@ Para compilar, simplesmente entre na pasta raiz e digite:
 Uma vez com o arquivo tradutor já na pasta raiz, digite o seguinte comando para rodar os programas no arquivo de teste:
 
   $ ./tradutor (caminho para o arquivo)
+  
+Para rodar um arquivo .tac, na pasta raíz, digite
+
+  $ ./tac -vds (caminho para o arquivo .tac)
